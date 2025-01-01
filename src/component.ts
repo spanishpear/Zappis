@@ -9,11 +9,11 @@ export interface ConnectionPoint {
 
 export abstract class Component extends Graphics {
         connectionPoints: ConnectionPoint[] = [];
-        coordinates = { x: 0, y: 0 };
+        coordinates: { x: number; y: number };
 
-        constructor(x: number, y: number, connectionPoints: ConnectionPoint[]) {
+        constructor(coordinates = { x: 0, y: 0 }, connectionPoints = []) {
                 super();
-                this.coordinates = { x, y };
+                this.coordinates = coordinates;
                 this.connectionPoints = connectionPoints;
         }
 

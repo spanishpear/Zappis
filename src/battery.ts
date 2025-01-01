@@ -1,23 +1,38 @@
-import { Component, ConnectionPoint } from "./component";
+import { Sprite } from "pixi.js";
+import { Component } from "./component";
 
 export class Battery extends Component {
         voltage: number;
-        #batteryWidth = 20;
+        #sprite: Sprite;
+        #scalingFactor = 8;
 
         constructor(x: number, y: number, voltage: number) {
-                const connectionPoints: ConnectionPoint[] = [
-                        { x: x, y: y - 20 }, // Positive terminal
-                        { x: x, y: y + 20 }, // Negative terminal
-                ];
-                super(x, y, connectionPoints);
+                super({ x, y });
+                this.#sprite = new Sprite(globalThis.sprites.battery);
+                this.#sprite.x = x;
+                this.#sprite.y = y;
+                this.#sprite.scale.set(this.#scalingFactor);
+
                 this.voltage = voltage;
+
+                const { width, height } = this.#sprite.getSize();
+
+                super.setConnectionPoints([
+                        // left side / negative terminal
+                        { x: x, y: y + height / 2 },
+                        // right side / positive terminal
+                        { x: x + width, y: y + height / 2 },
+                ]);
+                console.log(
+                        `battery connection points: ${JSON.stringify(this.connectionPoints, null, 2)}`,
+                );
         }
 
         draw() {
+                console.log(`Drawing battery at ${this.x}, ${this.y}`);
                 // draw a basic battery at the given x,y position
-                this.clear();
-                this.roundRect(this.x - 10, this.y - 10, this.x + 10, this.y + 20);
-                this.fill(0xff0000);
+                globalThis.app.stage.addChild(this.#sprite);
+                // add the connection points
                 globalThis.app.stage.addChild(this);
         }
 }

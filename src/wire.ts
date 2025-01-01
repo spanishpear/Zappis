@@ -9,7 +9,8 @@ export class Wire extends Component {
     width = 15,
     color = "0x000000",
   ) {
-    super([]);
+    // no connection points or x/y coordinates
+    super();
 
     const start = startComponent.connectionPoints[startIdx];
     const end = endComponent.connectionPoints[endIdx];
