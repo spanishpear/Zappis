@@ -1,33 +1,28 @@
-import { Graphics } from "pixi.js";
 import { Component } from "./component";
 
-type Coords = { startX: number; startY: number; endX: number; endY: number };
-
 export class Wire extends Component {
-  constructor({
-    coords,
+  constructor(
+    startComponent: Component,
+    endComponent: Component,
+    startIdx: number,
+    endIdx: number,
     width = 15,
     color = "0x000000",
-  }: {
-    coords: Coords;
-    width?: number;
-    color?: string;
-  }) {
-    // create a new graphics object
-    super();
+  ) {
+    super([]);
 
-    // move the graphics object to the start of the line
-    super.moveTo(coords.startX, coords.startY);
-    super.lineTo(coords.endX, coords.endY);
+    const start = startComponent.connectionPoints[startIdx];
+    const end = endComponent.connectionPoints[endIdx];
+    console.log(start, end);
+    this.moveTo(start.x, start.y);
+    this.lineTo(end.x, end.y);
+    this.stroke({ width, color });
 
-    // draw the line
-    super.stroke({ width, color });
+    // Establish the connection
+    startComponent.connectTo(startIdx, endComponent, endIdx);
   }
 
-  /*
-   * Add the line to the stage
-   */
-  draw() {
+  draw(): void {
     globalThis.app.stage.addChild(this);
   }
 }
