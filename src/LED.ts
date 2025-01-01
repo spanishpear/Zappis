@@ -9,6 +9,11 @@ export class LED extends Component {
                 ];
                 super(x, y, connectionPoints);
                 this.isOn = true;
+
+                // TODO - draw the LED
+                this.clear();
+                this.circle(this.x, this.y, 10);
+                this.fill(this.isOn ? 0xff0000 : 0x000000);
         }
 
         toggle() {
@@ -25,10 +30,6 @@ export class LED extends Component {
         }
 
         draw() {
-                // TODO - draw the LED
-                this.clear();
-                this.circle(this.x, this.y, 10);
-                this.fill(this.isOn ? 0xff0000 : 0x000000);
                 globalThis.app.stage.addChild(this);
         }
 }

@@ -1,4 +1,5 @@
 import { Graphics } from "pixi.js";
+import { DebugState } from "./debug";
 
 export interface ConnectionPoint {
         x: number;
@@ -34,5 +35,21 @@ export abstract class Component extends Graphics {
         ) {
                 this.connectionPoints[connectionIndex].connectedComponent = component;
                 component.connectionPoints[otherConnectionIndex].connectedComponent = this;
+        }
+
+        setConnectionPoints(points: ConnectionPoint[]) {
+                this.connectionPoints = points;
+        }
+
+        drawConnectionPoints() {
+                if (DebugState.enabled) {
+                        this.connectionPoints?.forEach((point) => {
+                                const debugPoint = new Graphics();
+                                //white color
+                                debugPoint.circle(point.x, point.y, 5);
+                                debugPoint.fill(0xffffff);
+                                globalThis.app.stage.addChild(debugPoint);
+                        });
+                }
         }
 }
