@@ -4,7 +4,7 @@ import { Component } from "./component";
 export class Battery extends Component {
         voltage: number;
         #sprite: Sprite;
-        #scalingFactor = 8;
+        #scalingFactor = 1;
 
         constructor(x: number, y: number, voltage: number) {
                 super({ x, y });

@@ -26,10 +26,18 @@ export class Switch extends Component {
                         // the sprite unfortunately doesn't sit flush
                         { x: this.x + width - 18, y: this.y + height - 18 },
                 ]);
+
+                // add click listener
+                this.#sprite.interactive = true;
+                this.#sprite.on("pointerdown", () => {
+                        this.toggle();
+                });
         }
         toggle() {
                 this.isClosed = !this.isClosed;
-                this.draw();
+                this.#sprite.texture = this.isClosed
+                        ? globalThis.sprites.switchOn
+                        : globalThis.sprites.switchOff;
         }
 
         draw() {
