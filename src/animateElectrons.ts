@@ -4,7 +4,7 @@ function animateElectrons(circuit: Circuit) {
   // Step 1: Determine the path
   const closedCircuitPath = findClosedCircuitPath(circuit);
   if (!closedCircuitPath) {
-    console.log("No closed circuit path found.");
+    console.log('No closed circuit path found.');
     return;
   }
   // Step 2: Create electron representations

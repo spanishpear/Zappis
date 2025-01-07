@@ -1,4 +1,4 @@
-import { Component } from "./component";
+import { Component } from './component';
 
 export class Wire extends Component {
   constructor(
@@ -7,7 +7,7 @@ export class Wire extends Component {
     startIdx: number,
     endIdx: number,
     width = 15,
-    color = "0x000000",
+    color = '0x000000',
   ) {
     // no connection points or x/y coordinates
     super();

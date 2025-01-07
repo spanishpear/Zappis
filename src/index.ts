@@ -1,12 +1,12 @@
-import "./index.css";
-import { bootstrap } from "./bootstrap";
-import { Application, Assets } from "pixi.js";
-import { Wire } from "./wire";
-import { Circuit } from "./circuit";
-import { Battery } from "./battery";
-import { LED } from "./LED";
-import { Switch } from "./switch";
-import { createDebugButton } from "./debug";
+import './index.css';
+import { bootstrap } from './bootstrap';
+import { Application, Assets } from 'pixi.js';
+import { Wire } from './wire';
+import { Circuit } from './circuit';
+import { Battery } from './battery';
+import { LED } from './LED';
+import { Switch } from './switch';
+import { createDebugButton } from './debug';
 
 declare global {
   var app: Application;
@@ -17,9 +17,9 @@ const main = async () => {
   // Initialize the application and store it in the global scope
   globalThis.app = await bootstrap();
   globalThis.sprites = {
-    battery: await Assets.load("sprites/battery.png"),
-    switchOn: await Assets.load("sprites/switch-on.png"),
-    switchOff: await Assets.load("sprites/switch-off.png"),
+    battery: await Assets.load('sprites/battery.png'),
+    switchOn: await Assets.load('sprites/switch-on.png'),
+    switchOff: await Assets.load('sprites/switch-off.png'),
   };
 
   // Create components
