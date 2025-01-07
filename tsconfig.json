@@ -1,22 +1,26 @@
+// https://www.totaltypescript.com/tsconfig-cheat-sheet
 {
   "compilerOptions": {
-    "lib": ["DOM", "ES2020"],
-    "target": "ES2020",
-    "noEmit": true,
+    /* Base Options: */
+    "esModuleInterop": true,
     "skipLibCheck": true,
-    "useDefineForClassFields": true,
-
-    /* modules */
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "isolatedModules": true,
+    "target": "es2022",
+    "allowJs": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
 
-    /* type checking */
+    /* Strictness */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true
-  },
-  "include": ["src"]
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    /* If NOT transpiling with TypeScript: */
+    "module": "preserve",
+    "noEmit": true,
+
+    /* If your code runs in the DOM: */
+    "lib": ["es2022", "dom", "dom.iterable"]
+  }
 }
