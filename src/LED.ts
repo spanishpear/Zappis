@@ -1,4 +1,4 @@
-import { Component, ConnectionPoint } from './component';
+import { Component, type ConnectionPoint } from './component';
 
 export class LED extends Component {
   isOn: boolean;

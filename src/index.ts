@@ -1,6 +1,6 @@
 import './index.css';
 import { bootstrap } from './bootstrap';
-import { Application, Assets } from 'pixi.js';
+import { type Application, Assets } from 'pixi.js';
 import { Wire } from './wire';
 import { Circuit } from './circuit';
 import { Battery } from './battery';

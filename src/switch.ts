@@ -7,7 +7,7 @@ export class Switch extends Component {
   rectHeight = 50;
   #sprite: Sprite;
 
-  constructor(x: number, y: number, isClosed: boolean = false) {
+  constructor(x: number, y: number, isClosed = false) {
     super({ x, y });
 
     this.isClosed = isClosed;
