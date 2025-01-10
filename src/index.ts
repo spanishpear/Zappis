@@ -7,10 +7,13 @@ import { Battery } from './battery';
 import { LED } from './LED';
 import { Switch } from './switch';
 import { createDebugButton } from './debug';
+import type { GridSystem } from './gridSystem';
 
 declare global {
   var app: Application;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   var sprites: Record<string, any>;
+  var gridSystem: GridSystem;
 }
 
 const main = async () => {
@@ -42,7 +45,9 @@ const main = async () => {
   createDebugButton();
 
   // Call drawConnectionPoints for debugging
-  circuit.elements.forEach((element) => element.drawConnectionPoints());
+  for (const element of circuit.elements) {
+    element.drawConnectionPoints();
+  }
 };
 
 main();
