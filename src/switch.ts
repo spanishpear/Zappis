@@ -1,5 +1,5 @@
 import { Sprite } from 'pixi.js';
-import { Component, ConnectionPoint } from './component';
+import { Component } from './component';
 
 export class Switch extends Component {
   isClosed: boolean;

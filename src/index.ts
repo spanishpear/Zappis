@@ -23,22 +23,35 @@ const main = async () => {
     battery: await Assets.load('sprites/battery.png'),
     switchOn: await Assets.load('sprites/switch-on.png'),
     switchOff: await Assets.load('sprites/switch-off.png'),
+    ledOn: await Assets.load('sprites/led_on.png'),
+    ledOff: await Assets.load('sprites/led_off.png'),
   };
 
   // Create components
-  const battery = new Battery(250, 100, 1.5);
-  const switchComponent = new Switch(850, 100);
+  const battery = new Battery(850, 100, 1.5);
+  const switchComponent = new Switch(850, 800);
+  const ledComponent = new LED(600, 400);
 
   // Create wires and connect components
   // Positive terminal of battery (index 0) to one side of switch (index 0)
-  const wire1 = new Wire(battery, switchComponent, 1, 0);
+  // const wire = new Wire(battery, switchComponent, 1, 0);
+  // const wire2 = new Wire(switchComponent, ledComponent, 0, 0);
+  const wires = [
+      new Wire(battery, switchComponent, 1, 0), 
+      new Wire(switchComponent, ledComponent, 0, 1), 
+      new Wire(ledComponent, battery, 1, 0)
+    ];
+
 
   const circuit = new Circuit();
 
   // Add components and wires to the circuit
   circuit.addElement(battery);
   circuit.addElement(switchComponent);
-  circuit.addElement(wire1);
+  circuit.addElement(ledComponent);
+  for (const wire of wires) {
+    circuit.addElement(wire);
+  }
 
   // Draw all elements
   circuit.drawElements();
