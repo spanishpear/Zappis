@@ -1,15 +1,13 @@
 import { Component } from '../component';
-import type { Port, Direction } from './types';
-import { WireManager } from './WireManager';
+import type { Port, Direction, PathSegment } from './types';
 import { Graphics, Point } from 'pixi.js';
 
 export class SmartWire extends Component {
-    private wireManager: WireManager;
     private startPort: Port;
     private endPort: Port;
     private strokeWidth: number;
     private color: string;
-    private readonly COMPONENT_CLEARANCE = 2; // Grid units of clearance around components
+    private segments: PathSegment[] = [];
 
     private calculatePortDirection(from: Point, to: Point): Direction {
         const dx = to.x - from.x;
@@ -34,7 +32,6 @@ export class SmartWire extends Component {
 
         this.strokeWidth = strokeWidth;
         this.color = color;
-        this.wireManager = new WireManager();
 
         // Create ports from connection points
         const start = startComponent.connectionPoints[startIdx];
@@ -66,17 +63,6 @@ export class SmartWire extends Component {
             component: endComponent
         };
 
-        // Add clearance zones around components
-        const startGridPos = this.wireManager.gridPositionFromPoint(startPos);
-        const endGridPos = this.wireManager.gridPositionFromPoint(endPos);
-        
-        this.wireManager.addComponentClearance(startGridPos, this.COMPONENT_CLEARANCE);
-        this.wireManager.addComponentClearance(endGridPos, this.COMPONENT_CLEARANCE);
-
-        // Register ports with wire manager
-        this.wireManager.registerPort(this.startPort);
-        this.wireManager.registerPort(this.endPort);
-
         // Set up our own connection points
         this.connectionPoints = [
             {
@@ -91,34 +77,74 @@ export class SmartWire extends Component {
             },
         ];
 
-        // Set routing style based on distance
-        const distance = Math.sqrt(
-            (endPos.x - startPos.x) ** 2 + 
-            (endPos.y - startPos.y) ** 2
-        );
-        
-        // Use direct routing for very close components, manhattan for others
-        this.wireManager.setRoutingStyle(distance < 50 ? 'direct' : 'manhattan');
-
         // Establish the connection
         startComponent.connectTo(startIdx, endComponent, endIdx);
+    }
+
+    private generateSimplePath(): PathSegment[] {
+        const start = this.startPort.position;
+        const end = this.endPort.position;
+        const segments: PathSegment[] = [];
+
+        // Determine if we should go horizontal first or vertical first
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const preferHorizontal = Math.abs(dx) > Math.abs(dy);
+
+        if (preferHorizontal) {
+            // Horizontal segment
+            segments.push({
+                start: { x: start.x / 20, y: start.y / 20 },
+                end: { x: end.x / 20, y: start.y / 20 },
+                type: 'horizontal'
+            });
+
+            // Only add vertical segment if needed
+            if (Math.abs(dy) > 0) {
+                segments.push({
+                    start: { x: end.x / 20, y: start.y / 20 },
+                    end: { x: end.x / 20, y: end.y / 20 },
+                    type: 'vertical'
+                });
+            }
+        } else {
+            // Vertical segment
+            segments.push({
+                start: { x: start.x / 20, y: start.y / 20 },
+                end: { x: start.x / 20, y: end.y / 20 },
+                type: 'vertical'
+            });
+
+            // Only add horizontal segment if needed
+            if (Math.abs(dx) > 0) {
+                segments.push({
+                    start: { x: start.x / 20, y: end.y / 20 },
+                    end: { x: end.x / 20, y: end.y / 20 },
+                    type: 'horizontal'
+                });
+            }
+        }
+
+        return segments;
     }
 
     override draw(): void {
         this.clear();
 
-        // Calculate route
-        const wire = this.wireManager.calculateRoute(this.startPort, this.endPort);
+        // Generate simple L-shaped path
+        this.segments = this.generateSimplePath();
+
+        // Start from exact connection point
+        this.moveTo(this.startPort.position.x, this.startPort.position.y);
 
         // Draw segments with rounded corners
         let lastPoint: Point | null = null;
-        
-        wire.path.forEach(segment => {
-            const start = segment.start.position;
-            const end = segment.end.position;
+        this.segments.forEach(segment => {
+            const start = new Point(segment.start.x * 20, segment.start.y * 20);
+            const end = new Point(segment.end.x * 20, segment.end.y * 20);
 
             if (!lastPoint) {
-                this.moveTo(start.x, start.y);
+                this.lineTo(start.x, start.y);
             } else if (lastPoint.x !== start.x || lastPoint.y !== start.y) {
                 // Add rounded corner
                 const radius = Math.min(this.strokeWidth, 10);
@@ -134,10 +160,35 @@ export class SmartWire extends Component {
     }
 
     getSegments() {
-        const wire = this.wireManager.calculateRoute(this.startPort, this.endPort);
-        return wire.path.map(segment => ({
-            x: segment.start.position.x,
-            y: segment.start.position.y
-        }));
+        // Start with the exact start point
+        const points = [{
+            x: this.startPort.position.x,
+            y: this.startPort.position.y
+        }];
+
+        // Add all grid-aligned points
+        this.segments.forEach(segment => {
+            points.push({
+                x: segment.start.x * 20,
+                y: segment.start.y * 20
+            });
+            points.push({
+                x: segment.end.x * 20,
+                y: segment.end.y * 20
+            });
+        });
+
+        // End with the exact end point
+        points.push({
+            x: this.endPort.position.x,
+            y: this.endPort.position.y
+        });
+
+        // Remove duplicates
+        return points.filter((point, index, self) => {
+            if (index === 0 || index === self.length - 1) return true;
+            const prev = self[index - 1];
+            return prev && (point.x !== prev.x || point.y !== prev.y);
+        });
     }
 } 
