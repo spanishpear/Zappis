@@ -34,6 +34,14 @@ export class CircuitSimulation {
     this.ticker.add(this.updateElectrons.bind(this));
   }
 
+  getIsFlowing() {
+    return this.isFlowing;
+  }
+
+  setIsFlowing(isFlowing: boolean) {
+    this.isFlowing = isFlowing;
+  }
+
   startFlow() {
     if (this.isFlowing || !this.circuit.getIsCircuitClosed()) return;
     

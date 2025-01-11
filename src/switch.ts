@@ -16,6 +16,8 @@ export class Switch extends Component {
     this.#sprite.x = x;
     this.#sprite.y = y;
     this.#sprite.scale.set(0.7);
+    // add cursor
+    this.#sprite.cursor = 'pointer';
 
     // need to do this at construction time
     // so future Components (e.g. wire draw) can connect to it
@@ -29,15 +31,23 @@ export class Switch extends Component {
 
     // add click listener
     this.#sprite.interactive = true;
+
     this.#sprite.on('pointerdown', () => {
       this.toggle();
+        if (globalThis.simulation.getIsFlowing()) {
+          globalThis.simulation.stopFlow();
+        } else {
+          globalThis.simulation.startFlow();
+        }
     });
+
   }
+
   toggle() {
     this.isClosed = !this.isClosed;
     this.#sprite.texture = this.isClosed
-      ? globalThis.sprites.switchOn
-      : globalThis.sprites.switchOff;
+      ? globalThis.sprites.switchOff
+      : globalThis.sprites.switchOn;
   }
 
   draw() {

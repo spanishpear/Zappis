@@ -16,6 +16,7 @@ declare global {
   var sprites: Record<string, any>;
   var gridSystem: GridSystem;
   var simulation: CircuitSimulation;
+  var circuit: Circuit;
 }
 
 const main = async () => {
@@ -29,7 +30,9 @@ const main = async () => {
     ledOff: await Assets.load('sprites/led_off.png'),
   };
 
+  // ================================
   // Create components
+  // ================================
   const battery = new Battery(850, 100, 1.5);
   const switchComponent = new Switch(850, 600);
   const ledComponent = new LED(600, 400);
@@ -51,34 +54,27 @@ const main = async () => {
     circuit.addElement(wire);
   }
 
-  circuit.calculateIsCircuitClosed();
-  console.log('Circuit is closed:', circuit.getIsCircuitClosed());
-  // Initialize simulation
-  globalThis.simulation = new CircuitSimulation(circuit);
-
-  // Draw all elements
   circuit.drawElements();
   createDebugButton();
   for (const element of circuit.elements) {
     element.drawConnectionPoints();
   }
 
+  // ================================
+  // Simulation setup and loop
+  // ================================
+  circuit.calculateIsCircuitClosed();
+  console.log('Circuit is closed:', circuit.getIsCircuitClosed());
+
+  // Initialize simulation
+  globalThis.simulation = new CircuitSimulation(circuit);
+  globalThis.circuit = circuit;
   // Start electron flow if circuit is closed
   if (circuit.getIsCircuitClosed()) {
     console.log('Circuit is closed, starting electron flow');
     globalThis.simulation.startFlow();
   }
 
-  // Add switch toggle handler
-  switchComponent.onclick = () => {
-    console.log('Switch clicked');
-    switchComponent.toggle();
-    if (circuit.getIsCircuitClosed()) {
-      globalThis.simulation.startFlow();
-    } else {
-      globalThis.simulation.stopFlow();
-    }
-  };
 };
 
 main();
