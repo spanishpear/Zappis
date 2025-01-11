@@ -29,7 +29,7 @@ const main = async () => {
 
   // Create components
   const battery = new Battery(850, 100, 1.5);
-  const switchComponent = new Switch(850, 800);
+  const switchComponent = new Switch(850, 600);
   const ledComponent = new LED(600, 400);
 
   // Create wires and connect components
