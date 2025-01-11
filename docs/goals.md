@@ -1,0 +1,3 @@
+- [-] Have a basic circuit with a battery, switch, and LED
+- [ ] Allow for the circuit to be calculated as closed or open
+- [ ] Animate electrons flowing through the circuit, if it is closed

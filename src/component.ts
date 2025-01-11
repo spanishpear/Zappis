@@ -36,6 +36,13 @@ export abstract class Component extends Graphics {
     component: Component,
     otherConnectionIndex: number,
   ) {
+    if (!this.connectionPoints[connectionIndex]) {
+      throw new Error('Invalid connection index');
+    }
+    if (!component.connectionPoints[otherConnectionIndex]) {
+      throw new Error('Invalid other connection index'); 
+    }
+
     this.connectionPoints[connectionIndex].connectedComponent = component;
     component.connectionPoints[otherConnectionIndex].connectedComponent = this;
   }
