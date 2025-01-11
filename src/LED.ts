@@ -6,7 +6,7 @@ export class LED extends Component {
   #sprite: Sprite;
 
   constructor(x: number, y: number) {
-    super({x, y});
+    super({ x, y });
     this.isOn = true;
     this.#sprite = new Sprite(globalThis.sprites.ledOn);
     this.#sprite.x = x;
@@ -28,10 +28,11 @@ export class LED extends Component {
     });
   }
 
-
   toggle() {
     this.isOn = !this.isOn;
-    this.#sprite.texture = this.isOn ? globalThis.sprites.ledOn : globalThis.sprites.ledOff;
+    this.#sprite.texture = this.isOn
+      ? globalThis.sprites.ledOn
+      : globalThis.sprites.ledOff;
   }
 
   draw() {

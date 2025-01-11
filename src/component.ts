@@ -11,7 +11,10 @@ export abstract class Component extends Graphics {
   connectionPoints: ConnectionPoint[] = [];
   coordinates: { x: number; y: number };
 
-  constructor(coordinates = { x: 0, y: 0 }, connectionPoints: ConnectionPoint[]= []) {
+  constructor(
+    coordinates = { x: 0, y: 0 },
+    connectionPoints: ConnectionPoint[] = [],
+  ) {
     super();
     this.coordinates = coordinates;
     this.connectionPoints = connectionPoints;
