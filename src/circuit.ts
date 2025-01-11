@@ -43,12 +43,11 @@ export class Circuit {
   }
 
   calculateIsCircuitClosed(): boolean {
-   
     DebugState.enabled && console.groupCollapsed('isCircuitClosed tracing');
     this.currentPath = []; // Reset path
-    
+
     // Find the battery in our circuit
-    const battery = this.elements.find(element => element instanceof Battery);
+    const battery = this.elements.find((element) => element instanceof Battery);
     if (!battery) {
       DebugState.enabled && console.groupEnd();
       this.isCircuitClosed = false;
@@ -57,10 +56,12 @@ export class Circuit {
 
     // Start from battery's positive terminal (index 1)
     const visited = new Set<Component>();
-    const stack: PathNode[] = [{
-      component: battery,
-      connectionIndex: 1  // Positive terminal
-    }];
+    const stack: PathNode[] = [
+      {
+        component: battery,
+        connectionIndex: 1, // Positive terminal
+      },
+    ];
 
     while (stack.length > 0) {
       const current = stack.pop();
@@ -68,11 +69,12 @@ export class Circuit {
       DebugState.enabled && console.log(current.component);
       visited.add(current.component);
       this.currentPath.push(current);
-      
+
       // Get the current connection point
-      const connectionPoint = current.component.connectionPoints[current.connectionIndex];
+      const connectionPoint =
+        current.component.connectionPoints[current.connectionIndex];
       DebugState.enabled && console.log(connectionPoint?.connectedComponent);
-      
+
       // If we reached battery's negative terminal, circuit is closed
       if (current.component === battery && current.connectionIndex === 0) {
         DebugState.enabled && console.groupEnd();
@@ -88,25 +90,32 @@ export class Circuit {
           return false;
         }
       }
-    
+
       // Add connected components to stack
-      if (connectionPoint?.connectedComponent && (!visited.has(connectionPoint.connectedComponent) || connectionPoint.connectedComponent instanceof Battery)) {
+      if (
+        connectionPoint?.connectedComponent &&
+        (!visited.has(connectionPoint.connectedComponent) ||
+          connectionPoint.connectedComponent instanceof Battery)
+      ) {
         // Find which connection point we're connected to on the other component
         const otherComponent = connectionPoint.connectedComponent;
         const otherConnectionIndex = otherComponent.connectionPoints.findIndex(
-          point => point.connectedComponent === current.component
+          (point) => point.connectedComponent === current.component,
         );
-        DebugState.enabled && console.log(`adding '${otherComponent.constructor.name}' connection index ${otherConnectionIndex} to stack`);
-        
+        DebugState.enabled &&
+          console.log(
+            `adding '${otherComponent.constructor.name}' connection index ${otherConnectionIndex} to stack`,
+          );
+
         if (otherComponent instanceof Battery) {
           stack.push({
             component: otherComponent,
-            connectionIndex: 0
+            connectionIndex: 0,
           });
         } else {
           stack.push({
             component: otherComponent,
-            connectionIndex: otherConnectionIndex === 0 ? 1 : 0  // Toggle to other connection point
+            connectionIndex: otherConnectionIndex === 0 ? 1 : 0, // Toggle to other connection point
           });
         }
       }

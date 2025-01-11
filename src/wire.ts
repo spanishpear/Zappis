@@ -34,16 +34,16 @@ export class Wire extends Component {
 
     // Set up our own connection points
     this.connectionPoints = [
-      { 
-        x: start?.x ?? 0, 
+      {
+        x: start?.x ?? 0,
         y: start?.y ?? 0,
-        connectedComponent: startComponent 
+        connectedComponent: startComponent,
       },
-      { 
-        x: end?.x ?? 0, 
+      {
+        x: end?.x ?? 0,
         y: end?.y ?? 0,
-        connectedComponent: endComponent 
-      }
+        connectedComponent: endComponent,
+      },
     ];
 
     // Establish the connection

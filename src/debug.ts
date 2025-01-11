@@ -1,4 +1,10 @@
-import { Graphics, Container, Text, TextStyle, type Application } from 'pixi.js';
+import {
+  Graphics,
+  Container,
+  Text,
+  TextStyle,
+  type Application,
+} from 'pixi.js';
 
 export const DebugState = {
   enabled: false,
@@ -34,7 +40,7 @@ export function createDebugButton(app: Application) {
   button.on('pointerdown', () => {
     DebugState.enabled = !DebugState.enabled;
     text.text = DebugState.enabled ? 'Debug: ON' : 'Debug: OFF';
-    console.clear()
+    console.clear();
   });
 
   // Position the button

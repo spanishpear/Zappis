@@ -36,13 +36,13 @@ export class CircuitSimulation {
 
   stopFlow() {
     this.isFlowing = false;
-    this.electrons.forEach(electron => {
+    this.electrons.forEach((electron) => {
       electron.visible = false;
     });
   }
   startFlow() {
     if (this.isFlowing || !this.circuit.getIsCircuitClosed()) return;
-    
+
     // Calculate complete wire path
     this.wirePoints = this.calculateCompletePath();
     if (this.wirePoints.length < 2) return;
@@ -53,7 +53,7 @@ export class CircuitSimulation {
     if (this.electrons.length === 0) {
       this.initializeElectrons();
     } else {
-      this.electrons.forEach(electron => {
+      this.electrons.forEach((electron) => {
         electron.visible = true;
       });
     }
@@ -63,37 +63,46 @@ export class CircuitSimulation {
   private calculateCompletePath(): Point[] {
     const path = this.circuit.getCircuitPath();
     const points: Point[] = [];
-    
+
     for (let i = 0; i < path.length - 1; i++) {
       const current = path[i];
       const next = path[i + 1];
-      
+
       if (!current || !next) continue;
 
       // Find the wire connecting these components
-      const wire = this.circuit.elements.find(element => {
+      const wire = this.circuit.elements.find((element) => {
         if (!(element instanceof Wire)) return false;
-        return element.connectionPoints.some(point => point.connectedComponent === current.component) &&
-               element.connectionPoints.some(point => point.connectedComponent === next.component);
+        return (
+          element.connectionPoints.some(
+            (point) => point.connectedComponent === current.component,
+          ) &&
+          element.connectionPoints.some(
+            (point) => point.connectedComponent === next.component,
+          )
+        );
       }) as Wire | undefined;
 
       if (wire) {
         const wirePoints = wire.getSegments();
         // If wire is reversed, reverse the points
-        const currentComponentIndex = wire.connectionPoints.findIndex(point => 
-          point.connectedComponent === current.component
+        const currentComponentIndex = wire.connectionPoints.findIndex(
+          (point) => point.connectedComponent === current.component,
         );
-        points.push(...(currentComponentIndex === 1 ? [...wirePoints].reverse() : wirePoints));
+        points.push(
+          ...(currentComponentIndex === 1
+            ? [...wirePoints].reverse()
+            : wirePoints),
+        );
       }
     }
-    
+
     return points;
   }
 
-
   private initializeElectrons() {
     const spacing = 1.0 / this.ELECTRON_COUNT;
-    
+
     for (let i = 0; i < this.ELECTRON_COUNT; i++) {
       const electron = new Electron();
       electron.progress = i * spacing;
@@ -103,17 +112,19 @@ export class CircuitSimulation {
   }
 
   private updateElectrons = () => {
-    
-    if (!this.circuit.calculateIsCircuitClosed() || this.wirePoints.length < 2) {
-        this.stopFlow();
-        return;
-    } 
+    if (
+      !this.circuit.calculateIsCircuitClosed() ||
+      this.wirePoints.length < 2
+    ) {
+      this.stopFlow();
+      return;
+    }
     // isFlowing is set by stopFlow
     // so, on a given tick, if the above branch is false, then the circuit must be closed - and we should start the flow
     this.startFlow();
 
     // Basically for each tick
-    this.electrons.forEach(electron => {
+    this.electrons.forEach((electron) => {
       // Update progress
       electron.progress += this.ELECTRON_SPEED / 100;
       if (electron.progress >= 1) {
@@ -124,10 +135,10 @@ export class CircuitSimulation {
       const totalSegments = this.wirePoints.length - 1;
       const currentSegmentIndex = Math.floor(electron.progress * totalSegments);
       const nextSegmentIndex = Math.min(currentSegmentIndex + 1, totalSegments);
-      
+
       const start = this.wirePoints[currentSegmentIndex];
       const end = this.wirePoints[nextSegmentIndex];
-      
+
       if (!start || !end) return;
 
       // Calculate position within segment
@@ -139,5 +150,4 @@ export class CircuitSimulation {
       electron.position.set(x, y);
     });
   };
-
-} 
+}

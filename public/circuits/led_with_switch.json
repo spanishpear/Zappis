@@ -1,0 +1,38 @@
+{
+  "components": [
+    {
+      "id": "battery1",
+      "type": "Battery",
+      "x": 850,
+      "y": 100,
+      "voltage": 1.5
+    },
+    {
+      "id": "switch1",
+      "type": "Switch",
+      "x": 850,
+      "y": 600,
+      "isEnabled": true
+    },
+    {
+      "id": "led1",
+      "type": "LED",
+      "x": 600,
+      "y": 400
+    }
+  ],
+  "wires": [
+    {
+      "start": { "component": "battery1", "index": 1 },
+      "end": { "component": "switch1", "index": 1 }
+    },
+    {
+      "start": { "component": "switch1", "index": 0 },
+      "end": { "component": "led1", "index": 0 }
+    },
+    {
+      "start": { "component": "led1", "index": 1 },
+      "end": { "component": "battery1", "index": 0 }
+    }
+  ]
+}

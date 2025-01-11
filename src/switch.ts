@@ -35,7 +35,6 @@ export class Switch extends Component {
     this.#sprite.on('pointerdown', () => {
       this.toggle();
     });
-
   }
 
   toggle() {
