@@ -1,10 +1,10 @@
-import { Graphics, Container, Text, TextStyle } from 'pixi.js';
+import { Graphics, Container, Text, TextStyle, type Application } from 'pixi.js';
 
 export const DebugState = {
-  enabled: true,
+  enabled: false,
 };
 
-export function createDebugButton() {
+export function createDebugButton(app: Application) {
   const button = new Container();
   const graphics = new Graphics();
   graphics.fill(0x000000);
@@ -42,5 +42,5 @@ export function createDebugButton() {
   button.y = 10;
 
   // Add to the stage
-  globalThis.app.stage.addChild(button);
+  app.stage.addChild(button);
 }

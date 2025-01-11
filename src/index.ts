@@ -55,12 +55,7 @@ const main = async () => {
   }
 
   circuit.drawElements();
-  createDebugButton();
-  if (DebugState.enabled) {
-    for (const element of circuit.elements) {
-      element.drawConnectionPoints();
-    }
-  }
+
 
   // ================================
   // Simulation setup and loop

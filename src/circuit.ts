@@ -30,7 +30,12 @@ export class Circuit {
    * Draw all elements to the screen
    */
   drawElements() {
-    this.elements.forEach((element) => element.draw());
+    this.elements.forEach((element) => {
+      element.draw();
+      if (DebugState.enabled) {
+        element.drawConnectionPoints();
+      }
+    });
   }
 
   getIsCircuitClosed(): boolean {

@@ -1,5 +1,6 @@
 import { Application } from 'pixi.js';
 import { GridSystem } from './gridSystem';
+import { createDebugButton } from './debug';
 
 export const bootstrap = async () => {
   // Create a new application
@@ -16,6 +17,9 @@ export const bootstrap = async () => {
 
   // Append the application canvas to the document body
   document.body.appendChild(appInstance.canvas);
+
+  createDebugButton(appInstance);
+
 
   return appInstance;
 };
