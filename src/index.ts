@@ -37,9 +37,9 @@ const main = async () => {
   // const wire = new Wire(battery, switchComponent, 1, 0);
   // const wire2 = new Wire(switchComponent, ledComponent, 0, 0);
   const wires = [
-      new Wire(battery, switchComponent, 1, 0), 
+      new Wire(battery, switchComponent, 1, 1), 
       new Wire(switchComponent, ledComponent, 0, 1), 
-      new Wire(ledComponent, battery, 1, 0)
+      new Wire(ledComponent, battery, 0, 0)
     ];
 
 

@@ -22,9 +22,9 @@ export class Switch extends Component {
     const { width, height } = this.#sprite.getSize();
     this.setConnectionPoints([
       // the sprite unfortunately doesn't sit flush
-      { x: this.x + 20, y: this.y + height - 18 },
+      { x: this.getX() + 20, y: this.getY() + height - 18 },
       // the sprite unfortunately doesn't sit flush
-      { x: this.x + width - 18, y: this.y + height - 18 },
+      { x: this.getX() + width - 18, y: this.getY() + height - 18 },
     ]);
 
     // add click listener

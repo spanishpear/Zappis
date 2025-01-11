@@ -12,13 +12,14 @@ export class LED extends Component {
     this.#sprite.x = x;
     this.#sprite.y = y;
     this.#sprite.scale.set(0.6);
+    // this.#sprite.rotation = 0.01;
     const { width, height } = this.#sprite.getSize();
 
     this.setConnectionPoints([
       // the sprite unfortunately doesn't sit flush
-      { x: this.x + 20, y: this.y + height - 18 },
+      { x: this.getX() + 20, y: this.getY() + height - 18 },
       // the sprite unfortunately doesn't sit flush
-      { x: this.x + width - 18, y: this.y + height - 18 },
+      { x: this.getX() + width - 18, y: this.getY() + height - 18 },
     ]);
 
     this.#sprite.interactive = true;

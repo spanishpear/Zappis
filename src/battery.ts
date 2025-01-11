@@ -19,9 +19,9 @@ export class Battery extends Component {
 
     super.setConnectionPoints([
       // left side / negative terminal
-      { x: x, y: y + height / 2 },
+      { x: this.getX(), y: this.getY() + height / 2 },
       // right side / positive terminal
-      { x: x + width, y: y + height / 2 },
+      { x: this.getX() + width, y: this.getY() + height / 2 },
     ]);
     console.log(
       `battery connection points: ${JSON.stringify(this.connectionPoints, null, 2)}`,

@@ -51,7 +51,6 @@ export class Wire extends Component {
     points.push(end);
     
     // Mark path as occupied in grid
-    // biome-ignore lint/complexity/noForEach: <explanation>
     points.forEach(point => grid.occupy(point.x, point.y));
     
     return points;
