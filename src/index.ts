@@ -7,6 +7,7 @@ import { Battery } from './battery';
 import { LED } from './LED';
 import { Switch } from './switch';
 import { createDebugButton } from './debug';
+import { CircuitSimulation } from './simulation';
 import type { GridSystem } from './gridSystem';
 
 declare global {
@@ -14,6 +15,7 @@ declare global {
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   var sprites: Record<string, any>;
   var gridSystem: GridSystem;
+  var simulation: CircuitSimulation;
 }
 
 const main = async () => {
@@ -49,16 +51,31 @@ const main = async () => {
     circuit.addElement(wire);
   }
 
+  // Initialize simulation
+  globalThis.simulation = new CircuitSimulation(circuit);
+
   // Draw all elements
   circuit.drawElements();
   createDebugButton();
-
-  // Call drawConnectionPoints for debugging
   for (const element of circuit.elements) {
     element.drawConnectionPoints();
   }
 
-  console.log(circuit.isCircuitClosed());
+  // Start electron flow if circuit is closed
+  if (circuit.isCircuitClosed()) {
+    console.log('Circuit is closed, starting electron flow');
+    globalThis.simulation.startFlow();
+  }
+
+  // Add switch toggle handler
+  switchComponent.on('pointerdown', () => {
+    switchComponent.toggle();
+    if (circuit.isCircuitClosed()) {
+      globalThis.simulation.startFlow();
+    } else {
+      globalThis.simulation.stopFlow();
+    }
+  });
 };
 
 main();

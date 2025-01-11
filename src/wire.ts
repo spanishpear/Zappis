@@ -32,6 +32,20 @@ export class Wire extends Component {
     // Draw all segments
     this.drawSegments(width, color);
 
+    // Set up our own connection points
+    this.connectionPoints = [
+      { 
+        x: start?.x ?? 0, 
+        y: start?.y ?? 0,
+        connectedComponent: startComponent 
+      },
+      { 
+        x: end?.x ?? 0, 
+        y: end?.y ?? 0,
+        connectedComponent: endComponent 
+      }
+    ];
+
     // Establish the connection
     startComponent.connectTo(startIdx, endComponent, endIdx);
   }
@@ -72,5 +86,9 @@ export class Wire extends Component {
 
   draw(): void {
     globalThis.app.stage.addChild(this);
+  }
+
+  getSegments(): Point[] {
+    return this.segments;
   }
 }
