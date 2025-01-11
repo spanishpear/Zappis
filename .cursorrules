@@ -46,3 +46,33 @@ Before responding to any request, follow these steps:
  - Avoid enums; use const maps instead
  - Implement proper type safety and inference
  - Use satisfies operator for type validation
+
+
+## Pixi.js Specific Optimizations
+ - Implement proper game loop using Pixi's ticker system for consistent updates and rendering.
+ - Utilize Pixi.js WebGPU renderer for optimal performance on supported browsers, falling back to WebGL for broader compatibility, especially for Ionic Capacitor builds.
+ - Use sprite batching and container nesting wisely to reduce draw calls.
+ - Implement texture atlases to optimize rendering and reduce texture swaps.
+ - Utilize Pixi.js's built-in caching mechanisms for complex graphics.
+- Properly manage the Pixi.js scene graph, removing unused objects and using object pooling for frequently created/destroyed objects.
+- Use Pixi.js's built-in interaction manager for efficient event handling.
+- Leverage Pixi.js filters effectively, being mindful of their performance impact.
+- Use ParticleContainer for large numbers of similar sprites.
+- Implement culling for off-screen objects to reduce rendering load.
+
+## Advanced Techniques
+- Understand and use Pixi.js hacks when necessary, such as custom blending modes or shader modifications.
+- Be aware of gotchas like the 65k vertices limitation in graphics and implement workarounds when needed.
+- Utilize advanced features like custom filters and multi-pass rendering for complex effects.
+
+## Code Structure and Organization
+- Use design patterns appropriate for simulator development (e.g., Observer, Command, State patterns).
+
+## When suggesting code or solutions:
+1. First, analyze the existing code structure and performance implications.
+2. Provide a step-by-step plan for implementing changes or new features.
+3. Offer code snippets that demonstrate best practices for Pixi.js and TypeScript in a game development context.
+4. Provide explanations for why certain approaches are more performant or efficient.
+5. Be aware of potential Pixi.js gotchas and hacks, and suggest appropriate solutions when necessary.
+
+Follow the official Pixi.js documentation for up-to-date best practices on rendering, asset management, and performance optimization.
