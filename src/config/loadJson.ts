@@ -3,7 +3,7 @@ import type { Component } from '../component';
 import { Switch } from '../switch';
 import { Battery } from '../battery';
 import { LED } from '../LED';
-import { Wire } from '../wire';
+import { SmartWire } from '../routing/SmartWire';
 
 interface CircuitConfig {
   // Ideally we would have a generic type for the components
@@ -86,7 +86,7 @@ export const circuitFromConfig = async (config: CircuitConfig) => {
       );
     }
 
-    const wire = new Wire(
+    const wire = new SmartWire(
       startComponent,
       endComponent,
       wireConfig.start.index,

@@ -7,7 +7,10 @@ import type {
     ValidationResult,
     GridPosition,
     GridNode,
-    WireSegment
+    WireSegment,
+    RoutingStyle,
+    ComponentClearance,
+    PathfindingOptions
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,14 +19,18 @@ export class WireManager {
     private ports: Map<string, Port>;
     private creationState: WireCreationState;
     private grid: Map<string, GridNode>;
-    private readonly GRID_SIZE = 5; // 5 pixels per grid unit
-    private readonly MIN_GRID = 0;  // Minimum grid coordinate
-    private readonly MAX_GRID = 100; // Maximum grid coordinate
+    private clearanceZones: ComponentClearance[];
+    private routingStyle: RoutingStyle;
+    private readonly GRID_SIZE = 20; // Increased from 5 to 20 for smoother paths
+    private readonly MIN_GRID = 0;
+    private readonly MAX_GRID = 100;
     
     constructor() {
         this.wires = new Map();
         this.ports = new Map();
         this.grid = new Map();
+        this.clearanceZones = [];
+        this.routingStyle = 'manhattan';
         this.creationState = {
             isDrawing: false,
             startPort: null,
@@ -96,16 +103,29 @@ export class WireManager {
 
     private getNeighbors(node: GridNode): GridNode[] {
         const neighbors: GridNode[] = [];
-        const positions = [
+        const positions: GridPosition[] = [];
+
+        // Add orthogonal neighbors
+        positions.push(
             { x: node.x, y: node.y - 1 }, // North
             { x: node.x + 1, y: node.y }, // East
             { x: node.x, y: node.y + 1 }, // South
             { x: node.x - 1, y: node.y }  // West
-        ];
+        );
+
+        // Add diagonal neighbors if not in manhattan mode
+        if (this.routingStyle === 'direct') {
+            positions.push(
+                { x: node.x + 1, y: node.y - 1 }, // Northeast
+                { x: node.x + 1, y: node.y + 1 }, // Southeast
+                { x: node.x - 1, y: node.y + 1 }, // Southwest
+                { x: node.x - 1, y: node.y - 1 }  // Northwest
+            );
+        }
 
         for (const pos of positions) {
             const neighbor = this.getNode(pos);
-            if (neighbor && !neighbor.isOccupied) {
+            if (neighbor && !neighbor.isOccupied && !this.isWithinComponentClearance(pos)) {
                 neighbors.push(neighbor);
             }
         }
@@ -388,5 +408,98 @@ export class WireManager {
 
     public getCreationState(): WireCreationState {
         return this.creationState;
+    }
+
+    public setRoutingStyle(style: RoutingStyle): void {
+        this.routingStyle = style;
+    }
+
+    public addComponentClearance(position: GridPosition, radius: number): void {
+        this.clearanceZones.push({ position, radius });
+        
+        // Mark grid points within clearance zone as occupied
+        for (let x = position.x - radius; x <= position.x + radius; x++) {
+            for (let y = position.y - radius; y <= position.y + radius; y++) {
+                if (this.isInBounds({ x, y })) {
+                    this.addObstacle({ x, y });
+                }
+            }
+        }
+    }
+
+    public isWithinComponentClearance(pos: GridPosition): boolean {
+        return this.clearanceZones.some(zone => {
+            const dx = pos.x - zone.position.x;
+            const dy = pos.y - zone.position.y;
+            return Math.sqrt(dx * dx + dy * dy) <= zone.radius;
+        });
+    }
+
+    public hasObstacle(pos: GridPosition): boolean {
+        if (!this.isInBounds(pos)) return true;
+        const node = this.getNode(pos);
+        return node?.isOccupied ?? false;
+    }
+
+    public smoothPath(path: GridPosition[]): GridPosition[] {
+        if (path.length <= 2) return path;
+
+        const smoothed: GridPosition[] = [path[0]];
+        let current = 0;
+
+        while (current < path.length - 1) {
+            let furthest = current + 1;
+            
+            // Look ahead for the furthest point we can directly connect to
+            for (let i = current + 2; i < path.length; i++) {
+                const currentPoint = path[current];
+                const testPoint = path[i];
+                if (currentPoint && testPoint && this.canDirectConnect(currentPoint, testPoint)) {
+                    furthest = i;
+                }
+            }
+
+            const furthestPoint = path[furthest];
+            if (furthestPoint) {
+                smoothed.push(furthestPoint);
+            }
+            current = furthest;
+        }
+
+        return smoothed;
+    }
+
+    private canDirectConnect(start: GridPosition, end: GridPosition): boolean {
+        // Bresenham's line algorithm to check if path is clear
+        const dx = Math.abs(end.x - start.x);
+        const dy = Math.abs(end.y - start.y);
+        const sx = start.x < end.x ? 1 : -1;
+        const sy = start.y < end.y ? 1 : -1;
+        let err = dx - dy;
+
+        let x = start.x;
+        let y = start.y;
+
+        while (true) {
+            if (this.hasObstacle({ x, y })) {
+                return false;
+            }
+
+            if (x === end.x && y === end.y) {
+                break;
+            }
+
+            const e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y += sy;
+            }
+        }
+
+        return true;
     }
 } 

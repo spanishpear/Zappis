@@ -2,7 +2,7 @@ import { Circuit } from '../../src/circuit';
 import { Battery } from '../../src/battery';
 import { Switch } from '../../src/switch';
 import { LED } from '../../src/LED';
-import { Wire } from '../../src/wire';
+import { SmartWire } from '../../src/routing/SmartWire';
 import { setupSprites } from '../config/bootstrap';
 import { Sprite } from 'pixi.js';
 import { GridSystem } from '../gridSystem';
@@ -43,9 +43,9 @@ describe('Circuit Class', () => {
     const battery = new Battery(100, 100, 1.5);
     const switchComponent = new Switch(200, 100);
     const led = new LED(300, 100);
-    const wire1 = new Wire(battery, switchComponent, 1, 0);
-    const wire2 = new Wire(switchComponent, led, 0, 0);
-    const wire3 = new Wire(led, battery, 1, 0);
+    const wire1 = new SmartWire(battery, switchComponent, 1, 0);
+    const wire2 = new SmartWire(switchComponent, led, 0, 0);
+    const wire3 = new SmartWire(led, battery, 1, 0);
 
     circuit.addElement(battery);
     circuit.addElement(switchComponent);
@@ -65,9 +65,9 @@ describe('Circuit Class', () => {
     const battery = new Battery(100, 100, 1.5);
     const switchComponent = new Switch(200, 100);
     const led = new LED(300, 100);
-    const wire1 = new Wire(battery, switchComponent, 1, 0);
-    const wire2 = new Wire(switchComponent, led, 0, 0);
-    const wire3 = new Wire(led, battery, 1, 0);
+    const wire1 = new SmartWire(battery, switchComponent, 1, 0);
+    const wire2 = new SmartWire(switchComponent, led, 0, 0);
+    const wire3 = new SmartWire(led, battery, 1, 0);
 
     circuit.addElement(battery);
     circuit.addElement(switchComponent);
