@@ -51,6 +51,8 @@ const main = async () => {
     circuit.addElement(wire);
   }
 
+  circuit.calculateIsCircuitClosed();
+  console.log('Circuit is closed:', circuit.getIsCircuitClosed());
   // Initialize simulation
   globalThis.simulation = new CircuitSimulation(circuit);
 
@@ -62,20 +64,21 @@ const main = async () => {
   }
 
   // Start electron flow if circuit is closed
-  if (circuit.isCircuitClosed()) {
+  if (circuit.getIsCircuitClosed()) {
     console.log('Circuit is closed, starting electron flow');
     globalThis.simulation.startFlow();
   }
 
   // Add switch toggle handler
-  switchComponent.on('pointerdown', () => {
+  switchComponent.onclick = () => {
+    console.log('Switch clicked');
     switchComponent.toggle();
-    if (circuit.isCircuitClosed()) {
+    if (circuit.getIsCircuitClosed()) {
       globalThis.simulation.startFlow();
     } else {
       globalThis.simulation.stopFlow();
     }
-  });
+  };
 };
 
 main();

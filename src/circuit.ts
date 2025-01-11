@@ -9,7 +9,7 @@ interface PathNode {
 export class Circuit {
   elements: Component[] = [];
   private currentPath: PathNode[] = [];
-
+  private isCircuitClosed = false;
   /*
    * Basic constructor
    */
@@ -31,7 +31,11 @@ export class Circuit {
     this.elements.forEach((element) => element.draw());
   }
 
-  isCircuitClosed(): boolean {
+  getIsCircuitClosed(): boolean {
+    return this.isCircuitClosed;
+  }
+
+  calculateIsCircuitClosed(): void {
     console.groupCollapsed('isCircuitClosed tracing');
     this.currentPath = []; // Reset path
     
@@ -39,7 +43,8 @@ export class Circuit {
     const battery = this.elements.find(element => element instanceof Battery);
     if (!battery) {
       console.groupEnd();
-      return false;
+      this.isCircuitClosed = false;
+      return; // Exit early if no battery is found
     }
 
     // Start from battery's positive terminal (index 1)
@@ -63,7 +68,8 @@ export class Circuit {
       // If we reached battery's negative terminal, circuit is closed
       if (current.component === battery && current.connectionIndex === 0) {
         console.groupEnd();
-        return true;
+        this.isCircuitClosed = true;
+        return;
       }
     
       // Add connected components to stack
@@ -91,7 +97,7 @@ export class Circuit {
 
     console.groupEnd();
     this.currentPath = []; // Clear path if circuit is not closed
-    return false;
+    this.isCircuitClosed = false;
   }
 
   getCircuitPath(): PathNode[] {

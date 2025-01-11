@@ -35,7 +35,7 @@ export class CircuitSimulation {
   }
 
   startFlow() {
-    if (this.isFlowing || !this.circuit.isCircuitClosed()) return;
+    if (this.isFlowing || !this.circuit.getIsCircuitClosed()) return;
     
     // Calculate complete wire path
     this.wirePoints = this.calculateCompletePath();
