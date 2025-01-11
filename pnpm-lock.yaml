@@ -15,6 +15,9 @@ importers:
       pixi.js:
         specifier: ^8.6.6
         version: 8.6.6
+      uuid:
+        specifier: ^11.0.5
+        version: 11.0.5
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.3
@@ -1623,6 +1626,10 @@ packages:
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
+
+  uuid@11.0.5:
+    resolution: {integrity: sha512-508e6IcKLrhxKdBbcA2b4KQZlLVp2+J5UwQ6F7Drckkc5N9ZJwFa4TgWtsww9UG8fGHbm6gbV19TdM5pQ4GaIA==, tarball: https://packages.atlassian.com/api/npm/npm-remote/uuid/-/uuid-11.0.5.tgz}
+    hasBin: true
 
   v8-to-istanbul@9.3.0:
     resolution: {integrity: sha512-kiGUalWN+rgBJ/1OHZsBtU4rXZOfj/7rKQxULKlIzwzQSvMJUUNgPwJEEh7gU6xEVxC0ahoOBvN2YI8GH6FNgA==, tarball: https://packages.atlassian.com/api/npm/npm-remote/v8-to-istanbul/-/v8-to-istanbul-9.3.0.tgz}
@@ -3533,6 +3540,8 @@ snapshots:
       browserslist: 4.24.4
       escalade: 3.2.0
       picocolors: 1.1.1
+
+  uuid@11.0.5: {}
 
   v8-to-istanbul@9.3.0:
     dependencies:
