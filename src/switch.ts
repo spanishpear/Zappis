@@ -2,15 +2,15 @@ import { Sprite } from 'pixi.js';
 import { Component } from './component';
 
 export class Switch extends Component {
-  isClosed: boolean;
+  isEnabled: boolean;
   rectWidth = 150;
   rectHeight = 50;
   #sprite: Sprite;
 
-  constructor(x: number, y: number, isClosed = false) {
+  constructor(x: number, y: number, isEnabled = true) {
     super({ x, y });
 
-    this.isClosed = isClosed;
+    this.isEnabled = isEnabled;
 
     this.#sprite = new Sprite(globalThis.sprites.switchOn);
     this.#sprite.x = x;
@@ -34,20 +34,15 @@ export class Switch extends Component {
 
     this.#sprite.on('pointerdown', () => {
       this.toggle();
-        if (globalThis.simulation.getIsFlowing()) {
-          globalThis.simulation.stopFlow();
-        } else {
-          globalThis.simulation.startFlow();
-        }
     });
 
   }
 
   toggle() {
-    this.isClosed = !this.isClosed;
-    this.#sprite.texture = this.isClosed
-      ? globalThis.sprites.switchOff
-      : globalThis.sprites.switchOn;
+    this.isEnabled = !this.isEnabled;
+    this.#sprite.texture = this.isEnabled
+      ? globalThis.sprites.switchOn
+      : globalThis.sprites.switchOff;
   }
 
   draw() {

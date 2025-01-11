@@ -34,6 +34,7 @@ export function createDebugButton() {
   button.on('pointerdown', () => {
     DebugState.enabled = !DebugState.enabled;
     text.text = DebugState.enabled ? 'Debug: ON' : 'Debug: OFF';
+    console.clear()
   });
 
   // Position the button

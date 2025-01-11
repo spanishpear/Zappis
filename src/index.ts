@@ -6,7 +6,7 @@ import { Circuit } from './circuit';
 import { Battery } from './battery';
 import { LED } from './LED';
 import { Switch } from './switch';
-import { createDebugButton } from './debug';
+import { createDebugButton, DebugState } from './debug';
 import { CircuitSimulation } from './simulation';
 import type { GridSystem } from './gridSystem';
 
@@ -56,8 +56,10 @@ const main = async () => {
 
   circuit.drawElements();
   createDebugButton();
-  for (const element of circuit.elements) {
-    element.drawConnectionPoints();
+  if (DebugState.enabled) {
+    for (const element of circuit.elements) {
+      element.drawConnectionPoints();
+    }
   }
 
   // ================================

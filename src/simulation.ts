@@ -24,7 +24,7 @@ export class CircuitSimulation {
   private electrons: Electron[] = [];
   private isFlowing = false;
   private readonly ELECTRON_COUNT = 5;
-  private readonly ELECTRON_SPEED = 0.5;
+  private readonly ELECTRON_SPEED = 0.1;
   private ticker: Ticker;
   private wirePoints: Point[] = [];
 
@@ -34,14 +34,12 @@ export class CircuitSimulation {
     this.ticker.add(this.updateElectrons.bind(this));
   }
 
-  getIsFlowing() {
-    return this.isFlowing;
+  stopFlow() {
+    this.isFlowing = false;
+    this.electrons.forEach(electron => {
+      electron.visible = false;
+    });
   }
-
-  setIsFlowing(isFlowing: boolean) {
-    this.isFlowing = isFlowing;
-  }
-
   startFlow() {
     if (this.isFlowing || !this.circuit.getIsCircuitClosed()) return;
     
@@ -50,7 +48,15 @@ export class CircuitSimulation {
     if (this.wirePoints.length < 2) return;
 
     this.isFlowing = true;
-    this.initializeElectrons();
+    // Essentially, we only want to initialize electrons if they haven't been initialized yet
+
+    if (this.electrons.length === 0) {
+      this.initializeElectrons();
+    } else {
+      this.electrons.forEach(electron => {
+        electron.visible = true;
+      });
+    }
     this.ticker.start();
   }
 
@@ -84,11 +90,6 @@ export class CircuitSimulation {
     return points;
   }
 
-  stopFlow() {
-    this.isFlowing = false;
-    this.ticker.stop();
-    this.clearElectrons();
-  }
 
   private initializeElectrons() {
     const spacing = 1.0 / this.ELECTRON_COUNT;
@@ -102,8 +103,16 @@ export class CircuitSimulation {
   }
 
   private updateElectrons = () => {
-    if (!this.isFlowing || this.wirePoints.length < 2) return;
+    
+    if (!this.circuit.calculateIsCircuitClosed() || this.wirePoints.length < 2) {
+        this.stopFlow();
+        return;
+    } 
+    // isFlowing is set by stopFlow
+    // so, on a given tick, if the above branch is false, then the circuit must be closed - and we should start the flow
+    this.startFlow();
 
+    // Basically for each tick
     this.electrons.forEach(electron => {
       // Update progress
       electron.progress += this.ELECTRON_SPEED / 100;
@@ -131,11 +140,4 @@ export class CircuitSimulation {
     });
   };
 
-  private clearElectrons() {
-    this.electrons.forEach(electron => {
-      globalThis.app.stage.removeChild(electron);
-      electron.destroy();
-    });
-    this.electrons = [];
-  }
 } 

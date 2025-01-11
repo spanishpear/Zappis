@@ -1,5 +1,7 @@
 import { Battery } from './battery';
 import type { Component } from './component';
+import { DebugState } from './debug';
+import { Switch } from './switch';
 
 interface PathNode {
   component: Component;
@@ -35,16 +37,17 @@ export class Circuit {
     return this.isCircuitClosed;
   }
 
-  calculateIsCircuitClosed(): void {
-    console.groupCollapsed('isCircuitClosed tracing');
+  calculateIsCircuitClosed(): boolean {
+   
+    DebugState.enabled && console.groupCollapsed('isCircuitClosed tracing');
     this.currentPath = []; // Reset path
     
     // Find the battery in our circuit
     const battery = this.elements.find(element => element instanceof Battery);
     if (!battery) {
-      console.groupEnd();
+      DebugState.enabled && console.groupEnd();
       this.isCircuitClosed = false;
-      return; // Exit early if no battery is found
+      return false; // Exit early if no battery is found
     }
 
     // Start from battery's positive terminal (index 1)
@@ -57,19 +60,28 @@ export class Circuit {
     while (stack.length > 0) {
       const current = stack.pop();
       if (!current) continue;
-      console.log(current.component);
+      DebugState.enabled && console.log(current.component);
       visited.add(current.component);
       this.currentPath.push(current);
       
       // Get the current connection point
       const connectionPoint = current.component.connectionPoints[current.connectionIndex];
-      console.log(connectionPoint?.connectedComponent);
+      DebugState.enabled && console.log(connectionPoint?.connectedComponent);
       
       // If we reached battery's negative terminal, circuit is closed
       if (current.component === battery && current.connectionIndex === 0) {
-        console.groupEnd();
+        DebugState.enabled && console.groupEnd();
         this.isCircuitClosed = true;
-        return;
+        return true;
+      }
+
+      // If we reached a switch and it's not enabled, circuit is not closed
+      if (current.component instanceof Switch) {
+        if (current.component.isEnabled === false) {
+          this.isCircuitClosed = false;
+          DebugState.enabled && console.groupEnd();
+          return false;
+        }
       }
     
       // Add connected components to stack
@@ -79,7 +91,7 @@ export class Circuit {
         const otherConnectionIndex = otherComponent.connectionPoints.findIndex(
           point => point.connectedComponent === current.component
         );
-        console.log(`adding '${otherComponent.constructor.name}' connection index ${otherConnectionIndex} to stack`);
+        DebugState.enabled && console.log(`adding '${otherComponent.constructor.name}' connection index ${otherConnectionIndex} to stack`);
         
         if (otherComponent instanceof Battery) {
           stack.push({
@@ -95,9 +107,10 @@ export class Circuit {
       }
     }
 
-    console.groupEnd();
+    DebugState.enabled && console.groupEnd();
     this.currentPath = []; // Clear path if circuit is not closed
     this.isCircuitClosed = false;
+    return this.isCircuitClosed;
   }
 
   getCircuitPath(): PathNode[] {
