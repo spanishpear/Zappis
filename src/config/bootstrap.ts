@@ -2,6 +2,16 @@ import { Application, Assets } from 'pixi.js';
 import { GridSystem } from '../gridSystem';
 import { createDebugButton } from '../debug';
 
+export const setupSprites = async () => {
+    globalThis.sprites = {
+        battery: await Assets.load('sprites/battery.png'),
+        switchOn: await Assets.load('sprites/switch-on.png'),
+        switchOff: await Assets.load('sprites/switch-off.png'),
+        ledOn: await Assets.load('sprites/led_on.png'),
+        ledOff: await Assets.load('sprites/led_off.png'),
+  };
+};
+
 export const bootstrap = async () => {
   // Create a new application
   const appInstance = new Application();
@@ -22,11 +32,5 @@ export const bootstrap = async () => {
 
   // Initialize the application and store it in the global scope
   globalThis.app = appInstance;
-  globalThis.sprites = {
-    battery: await Assets.load('sprites/battery.png'),
-    switchOn: await Assets.load('sprites/switch-on.png'),
-    switchOff: await Assets.load('sprites/switch-off.png'),
-    ledOn: await Assets.load('sprites/led_on.png'),
-    ledOff: await Assets.load('sprites/led_off.png'),
-  };
+  await setupSprites();
 };

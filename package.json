@@ -12,12 +12,24 @@
     "preview": "rsbuild preview",
     "lint": "biome lint ./src",
     "lint:fix": "biome lint --write ./src",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "resolutions": {
+    "jsdom": "^25.0.0",
+    "test-exclude": "^7.0.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
     "@rsbuild/core": "^1.1.8",
+    "@swc/core": "^1.10.7",
+    "@swc/jest": "^0.2.37",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.10.2",
+    "jest": "30.0.0-alpha.6",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^25.0.0",
+    "test-exclude": "^7.0.1",
     "typescript": "^5.7.2"
   },
   "dependencies": {
