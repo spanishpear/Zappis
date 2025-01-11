@@ -5,6 +5,22 @@ export type Direction = 'north' | 'south' | 'east' | 'west';
 export type PointType = 'component' | 'bend' | 'junction';
 export type ConnectionType = 'input' | 'output';
 
+// Grid types for pathfinding
+export interface GridNode {
+    x: number;
+    y: number;
+    f: number; // Total cost (g + h)
+    g: number; // Cost from start to this node
+    h: number; // Heuristic cost to end
+    parent: GridNode | null;
+    isOccupied: boolean;
+}
+
+export interface GridPosition {
+    x: number;
+    y: number;
+}
+
 export interface Port {
     id: string;
     position: Point;

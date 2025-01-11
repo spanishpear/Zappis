@@ -4,7 +4,10 @@ import type {
     Wire, 
     WirePoint, 
     WireCreationState,
-    ValidationResult 
+    ValidationResult,
+    GridPosition,
+    GridNode,
+    WireSegment
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -12,10 +15,15 @@ export class WireManager {
     private wires: Map<string, Wire>;
     private ports: Map<string, Port>;
     private creationState: WireCreationState;
+    private grid: Map<string, GridNode>;
+    private readonly GRID_SIZE = 5; // 5 pixels per grid unit
+    private readonly MIN_GRID = 0;  // Minimum grid coordinate
+    private readonly MAX_GRID = 100; // Maximum grid coordinate
     
     constructor() {
         this.wires = new Map();
         this.ports = new Map();
+        this.grid = new Map();
         this.creationState = {
             isDrawing: false,
             startPort: null,
@@ -23,6 +31,191 @@ export class WireManager {
             previewPath: [],
             validEndPoints: []
         };
+    }
+
+    private isInBounds(pos: GridPosition): boolean {
+        return pos.x >= this.MIN_GRID && 
+               pos.x <= this.MAX_GRID && 
+               pos.y >= this.MIN_GRID && 
+               pos.y <= this.MAX_GRID;
+    }
+
+    private getGridKey(x: number, y: number): string {
+        return `${x},${y}`;
+    }
+
+    public gridPositionFromPoint(point: Point): GridPosition {
+        return {
+            x: Math.floor(point.x / this.GRID_SIZE),
+            y: Math.floor(point.y / this.GRID_SIZE)
+        };
+    }
+
+    private pointFromGridPosition(gridPos: GridPosition): Point {
+        return new Point(
+            gridPos.x * this.GRID_SIZE,
+            gridPos.y * this.GRID_SIZE
+        );
+    }
+
+    public addObstacle(pos: GridPosition): void {
+        if (!this.isInBounds(pos)) return;
+        
+        const key = this.getGridKey(pos.x, pos.y);
+        const node: GridNode = {
+            x: pos.x,
+            y: pos.y,
+            f: 0,
+            g: 0,
+            h: 0,
+            parent: null,
+            isOccupied: true
+        };
+        this.grid.set(key, node);
+    }
+
+    private getNode(pos: GridPosition): GridNode | null {
+        if (!this.isInBounds(pos)) return null;
+        
+        const key = this.getGridKey(pos.x, pos.y);
+        let node = this.grid.get(key);
+        if (!node) {
+            node = {
+                x: pos.x,
+                y: pos.y,
+                f: 0,
+                g: 0,
+                h: 0,
+                parent: null,
+                isOccupied: false
+            };
+            this.grid.set(key, node);
+        }
+        return node;
+    }
+
+    private getNeighbors(node: GridNode): GridNode[] {
+        const neighbors: GridNode[] = [];
+        const positions = [
+            { x: node.x, y: node.y - 1 }, // North
+            { x: node.x + 1, y: node.y }, // East
+            { x: node.x, y: node.y + 1 }, // South
+            { x: node.x - 1, y: node.y }  // West
+        ];
+
+        for (const pos of positions) {
+            const neighbor = this.getNode(pos);
+            if (neighbor && !neighbor.isOccupied) {
+                neighbors.push(neighbor);
+            }
+        }
+
+        return neighbors;
+    }
+
+    private heuristic(a: GridPosition, b: GridPosition): number {
+        // Manhattan distance
+        return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+    }
+
+    public findPath(start: GridPosition, end: GridPosition): GridPosition[] | null {
+        // Check if start or end is out of bounds
+        if (!this.isInBounds(start) || !this.isInBounds(end)) {
+            return null;
+        }
+        
+        // Reset grid nodes for new search but keep obstacles
+        const obstacles = new Map<string, GridNode>();
+        for (const [key, node] of this.grid.entries()) {
+            if (node.isOccupied) {
+                obstacles.set(key, node);
+            }
+        }
+        this.grid.clear();
+        
+        // Restore obstacles
+        for (const [key, node] of obstacles.entries()) {
+            this.grid.set(key, node);
+        }
+        
+        const startNode = this.getNode(start);
+        const endNode = this.getNode(end);
+        
+        // If start or end is occupied or invalid, no path is possible
+        if (!startNode || !endNode || startNode.isOccupied || endNode.isOccupied) {
+            return null;
+        }
+        
+        const openSet: GridNode[] = [startNode];
+        const closedSet = new Set<string>();
+        
+        while (openSet.length > 0) {
+            // Find node with lowest f score
+            let lowestF = Number.POSITIVE_INFINITY;
+            let currentIndex = -1;
+            
+            // Find the node with the lowest f score
+            for (let i = 0; i < openSet.length; i++) {
+                const node = openSet[i];
+                if (node && node.f < lowestF) {
+                    lowestF = node.f;
+                    currentIndex = i;
+                }
+            }
+            
+            if (currentIndex === -1) {
+                return null; // No valid path found
+            }
+            
+            const current = openSet[currentIndex];
+            if (!current) {
+                return null; // This should never happen, but TypeScript needs it
+            }
+            
+            // Remove current from openSet
+            openSet.splice(currentIndex, 1);
+            
+            // Add to closed set
+            const currentKey = this.getGridKey(current.x, current.y);
+            closedSet.add(currentKey);
+            
+            // Check if we reached the end
+            if (current.x === endNode.x && current.y === endNode.y) {
+                const path: GridPosition[] = [];
+                let temp: GridNode | null = current;
+                
+                while (temp !== null) {
+                    path.push({ x: temp.x, y: temp.y });
+                    temp = temp.parent;
+                }
+                
+                return path.reverse();
+            }
+            
+            // Check neighbors
+            const neighbors = this.getNeighbors(current);
+            for (const neighbor of neighbors) {
+                const neighborKey = this.getGridKey(neighbor.x, neighbor.y);
+                if (closedSet.has(neighborKey)) {
+                    continue;
+                }
+                
+                const tentativeG = current.g + 1;
+                
+                if (!openSet.includes(neighbor)) {
+                    openSet.push(neighbor);
+                } else if (tentativeG >= neighbor.g) {
+                    continue;
+                }
+                
+                neighbor.parent = current;
+                neighbor.g = tentativeG;
+                neighbor.h = this.heuristic(neighbor, endNode);
+                neighbor.f = neighbor.g + neighbor.h;
+            }
+        }
+        
+        return null; // No path found
     }
 
     public registerPort(port: Port): void {
@@ -42,7 +235,51 @@ export class WireManager {
     }
 
     public calculateRoute(start: Port, end: Port): Wire {
-        // Stub implementation - creates a simple L-shaped route
+        const startGridPos = this.gridPositionFromPoint(start.position);
+        const endGridPos = this.gridPositionFromPoint(end.position);
+        
+        const path = this.findPath(startGridPos, endGridPos);
+        
+        if (!path) {
+            // Fallback to simple L-shaped route if no path found
+            return this.createSimpleRoute(start, end);
+        }
+        
+        // Convert path to wire segments
+        const wirePoints: WirePoint[] = path.map((pos, index) => ({
+            position: this.pointFromGridPosition(pos),
+            type: index === 0 ? 'component' : 
+                  index === path.length - 1 ? 'component' : 'bend',
+            connectionType: index === 0 ? 'output' :
+                          index === path.length - 1 ? 'input' : undefined
+        }));
+        
+        const segments: WireSegment[] = [];
+        for (let i = 0; i < wirePoints.length - 1; i++) {
+            const current = wirePoints[i];
+            const next = wirePoints[i + 1];
+            
+            if (current && next) {
+                segments.push({
+                    start: current,
+                    end: next,
+                    direction: current.position.x === next.position.x ? 'vertical' : 'horizontal'
+                });
+            }
+        }
+        
+        return {
+            id: uuidv4(),
+            path: segments,
+            startComponent: start.component,
+            endComponent: end.component,
+            startPort: start,
+            endPort: end
+        };
+    }
+
+    private createSimpleRoute(start: Port, end: Port): Wire {
+        // Original L-shaped route implementation
         const startPoint: WirePoint = {
             position: start.position,
             type: 'component',
