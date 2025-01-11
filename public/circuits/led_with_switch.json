@@ -10,15 +10,15 @@
     {
       "id": "switch1",
       "type": "Switch",
-      "x": 850,
+      "x": 750,
       "y": 600,
       "isEnabled": true
     },
     {
       "id": "led1",
       "type": "LED",
-      "x": 600,
-      "y": 400
+      "x": 500,
+      "y": 540
     }
   ],
   "wires": [

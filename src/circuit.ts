@@ -32,9 +32,7 @@ export class Circuit {
   drawElements() {
     this.elements.forEach((element) => {
       element.draw();
-      if (DebugState.enabled) {
-        element.drawConnectionPoints();
-      }
+      element.drawConnectionPoints();
     });
   }
 
