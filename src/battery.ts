@@ -23,13 +23,9 @@ export class Battery extends Component {
       // right side / positive terminal
       { x: this.getX() + width, y: this.getY() + height / 2 },
     ]);
-    console.log(
-      `battery connection points: ${JSON.stringify(this.connectionPoints, null, 2)}`,
-    );
   }
 
   draw() {
-    console.log(`Drawing battery at ${this.x}, ${this.y}`);
     // draw a basic battery at the given x,y position
     globalThis.app.stage.addChild(this.#sprite);
     // add the connection points

@@ -57,6 +57,8 @@ const main = async () => {
   for (const element of circuit.elements) {
     element.drawConnectionPoints();
   }
+
+  console.log(circuit.isCircuitClosed());
 };
 
 main();
