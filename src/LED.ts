@@ -1,43 +1,62 @@
 import { Sprite } from 'pixi.js';
-import { Component, type ConnectionPoint } from './component';
+import { Component } from './component';
+import type { ComponentMetadata } from './registry/ComponentRegistry';
 
 export class LED extends Component {
   isOn: boolean;
   #sprite: Sprite;
 
   constructor(x: number, y: number) {
-    super({ x, y });
+    // Ensure sprites are available
+    if (!globalThis.sprites?.ledOn || !globalThis.sprites?.ledOff) {
+      throw new Error('LED sprites not loaded');
+    }
+
+    // Create sprite first to get dimensions
+    const sprite = new Sprite(globalThis.sprites.ledOn);
+    sprite.scale.set(0.6);
+    sprite.anchor.set(0.5);
+    sprite.angle = 270;
+    const { width, height } = sprite.getSize();
+
+    // Create metadata
+    const metadata: ComponentMetadata = {
+      type: 'led',
+      displayName: 'LED',
+      width,
+      height,
+      connectionPoints: [
+        // Positive terminal (top)
+        { relativeX: width / 2, relativeY: -20 },
+        // Negative terminal (bottom)
+        { relativeX: width / 2, relativeY: 20 },
+      ],
+    };
+
+    // Initialize base component with metadata and position
+    super(metadata, { x, y });
+
+    // Store instance properties
+    this.#sprite = sprite;
+    this.#sprite.position.set(x, y);
     this.isOn = true;
-    this.#sprite = new Sprite(globalThis.sprites.ledOn);
-    this.#sprite.x = x;
-    this.#sprite.y = y;
-    this.#sprite.scale.set(0.6);
-    this.#sprite.anchor.set(0.5);
-    this.#sprite.angle = 270;
-    const { width, height } = this.#sprite.getSize();
 
-    this.setConnectionPoints([
-      // the sprite unfortunately doesn't sit flush
-      { x: this.getX() + width / 2, y: this.getY() + 20 },
-      // the sprite unfortunately doesn't sit flush
-      { x: this.getX() + width / 2, y: this.getY() - 20},
-    ]);
-
+    // Configure interactivity
     this.#sprite.interactive = true;
     this.#sprite.on('pointerdown', () => {
       this.toggle();
     });
   }
 
-  toggle() {
+  toggle(): void {
     this.isOn = !this.isOn;
     this.#sprite.texture = this.isOn
       ? globalThis.sprites.ledOn
       : globalThis.sprites.ledOff;
   }
 
-  draw() {
-    globalThis.app.stage.addChild(this);
+  override draw(): void {
     globalThis.app.stage.addChild(this.#sprite);
+    this.drawConnectionPoints();
   }
 }

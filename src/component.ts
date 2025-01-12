@@ -1,31 +1,85 @@
 import { Graphics } from 'pixi.js';
 import { DebugState } from './debug';
+import type { ComponentMetadata } from './registry/ComponentRegistry';
 
 export interface ConnectionPoint {
   x: number;
   y: number;
-  connectedComponent?: Component | null;
+  connectedComponent: Component | null;
+  label?: string;
+}
+
+export interface ComponentProperties {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  [key: string]: unknown;
 }
 
 export abstract class Component extends Graphics {
+  protected metadata: ComponentMetadata;
+  protected properties: ComponentProperties;
   connectionPoints: ConnectionPoint[] = [];
-  coordinates: { x: number; y: number };
 
   constructor(
-    coordinates = { x: 0, y: 0 },
-    connectionPoints: ConnectionPoint[] = [],
+    metadata: ComponentMetadata,
+    properties: Partial<ComponentProperties> = {}
   ) {
     super();
-    this.coordinates = coordinates;
-    this.connectionPoints = connectionPoints;
+
+    if (!metadata) {
+      throw new Error('Component metadata is required');
+    }
+
+    if (typeof metadata.width !== 'number' || typeof metadata.height !== 'number') {
+      throw new Error('Component metadata must include width and height');
+    }
+
+    this.metadata = metadata;
+    
+    // Initialize properties with defaults
+    this.properties = {
+      x: properties.x ?? 0,
+      y: properties.y ?? 0,
+      width: properties.width ?? metadata.width,
+      height: properties.height ?? metadata.height,
+      ...metadata.defaultProperties,
+      ...properties
+    };
+
+    // Initialize connection points from metadata
+    // Ensure connectionPoints exists and is an array
+    const connectionPoints = Array.isArray(metadata.connectionPoints) 
+      ? metadata.connectionPoints 
+      : [];
+
+    this.connectionPoints = connectionPoints.map(point => ({
+      x: this.properties.x + point.relativeX,
+      y: this.properties.y + point.relativeY,
+      label: point.label,
+      connectedComponent: null
+    }));
+
+    // Set initial position
+    this.position.set(this.properties.x, this.properties.y);
   }
 
   getX(): number {
-    return this.coordinates.x;
+    return this.properties.x;
   }
 
   getY(): number {
-    return this.coordinates.y;
+    return this.properties.y;
+  }
+
+  getProperty<T>(key: string): T {
+    return this.properties[key] as T;
+  }
+
+  setProperty<T>(key: string, value: T): void {
+    this.properties[key] = value;
+    this.draw(); // Redraw component when properties change
   }
 
   abstract draw(): void;
@@ -35,31 +89,66 @@ export abstract class Component extends Graphics {
     connectionIndex: number,
     component: Component,
     otherConnectionIndex: number,
-  ) {
-    if (!this.connectionPoints[connectionIndex]) {
-      throw new Error('Invalid connection index');
+  ): void {
+    const connectionPoint = this.connectionPoints[connectionIndex];
+    const otherConnectionPoint = component.connectionPoints[otherConnectionIndex];
+
+    if (!connectionPoint) {
+      throw new Error(`Invalid connection index ${connectionIndex} for component type ${this.metadata.type}`);
     }
-    if (!component.connectionPoints[otherConnectionIndex]) {
-      throw new Error('Invalid other connection index');
+    if (!otherConnectionPoint) {
+      throw new Error(`Invalid connection index ${otherConnectionIndex} for component type ${component.metadata.type}`);
     }
 
-    this.connectionPoints[connectionIndex].connectedComponent = component;
-    component.connectionPoints[otherConnectionIndex].connectedComponent = this;
+    connectionPoint.connectedComponent = component;
+    otherConnectionPoint.connectedComponent = this;
   }
 
-  setConnectionPoints(points: ConnectionPoint[]) {
-    this.connectionPoints = points;
+  disconnect(connectionIndex: number): void {
+    const point = this.connectionPoints[connectionIndex];
+    if (!point) {
+      throw new Error(`Invalid connection index ${connectionIndex}`);
+    }
+
+    if (point.connectedComponent) {
+      // Find and clear the corresponding connection point on the other component
+      const otherComponent = point.connectedComponent;
+      const otherIndex = otherComponent.connectionPoints.findIndex(
+        p => p.connectedComponent === this
+      );
+      if (otherIndex !== -1) {
+        const otherPoint = otherComponent.connectionPoints[otherIndex];
+        if (otherPoint) {
+          otherPoint.connectedComponent = null;
+        }
+      }
+    }
+    point.connectedComponent = null;
   }
 
-  drawConnectionPoints() {
+  drawConnectionPoints(): void {
     if (DebugState.enabled) {
-      this.connectionPoints?.forEach((point) => {
+      this.connectionPoints.forEach((point) => {
         const debugPoint = new Graphics();
-        //white color
-        debugPoint.circle(point.x, point.y, 5);
-        debugPoint.fill(0xffffff);
-        globalThis.app.stage.addChild(debugPoint);
+        debugPoint.circle(point.x - this.properties.x, point.y - this.properties.y, 5);
+        debugPoint.fill(point.connectedComponent ? 0x00ff00 : 0xffffff);
+        this.addChild(debugPoint);
       });
     }
+  }
+
+  // Helper method to update connection point positions when component moves
+  protected updateConnectionPoints(): void {
+    if (!Array.isArray(this.metadata.connectionPoints)) {
+      return;
+    }
+
+    this.metadata.connectionPoints.forEach((metadata, index) => {
+      const point = this.connectionPoints[index];
+      if (point) {
+        point.x = this.properties.x + metadata.relativeX;
+        point.y = this.properties.y + metadata.relativeY;
+      }
+    });
   }
 }

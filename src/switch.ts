@@ -1,51 +1,61 @@
 import { Sprite } from 'pixi.js';
 import { Component } from './component';
+import type { ComponentMetadata } from './registry/ComponentRegistry';
 
 export class Switch extends Component {
   isEnabled: boolean;
-  rectWidth = 150;
-  rectHeight = 50;
   #sprite: Sprite;
 
   constructor(x: number, y: number, isEnabled = true) {
-    super({ x, y });
+    // Ensure sprites are available
+    if (!globalThis.sprites?.switchOn || !globalThis.sprites?.switchOff) {
+      throw new Error('Switch sprites not loaded');
+    }
 
+    // Create sprite first to get dimensions
+    const sprite = new Sprite(globalThis.sprites.switchOn);
+    sprite.scale.set(0.7); // Set scale to match existing behavior
+    const { width, height } = sprite.getSize();
+
+    // Create metadata
+    const metadata: ComponentMetadata = {
+      type: 'switch',
+      displayName: 'Switch',
+      width,
+      height,
+      connectionPoints: [
+        // left side connection
+        { relativeX: 20, relativeY: height - 18 },
+        // right side connection
+        { relativeX: width - 18, relativeY: height - 18 },
+      ],
+    };
+
+    // Initialize base component with metadata and position
+    super(metadata, { x, y });
+
+    // Store instance properties
+    this.#sprite = sprite;
+    this.#sprite.position.set(x, y);
     this.isEnabled = isEnabled;
 
-    this.#sprite = new Sprite(globalThis.sprites.switchOn);
-    this.#sprite.x = x;
-    this.#sprite.y = y;
-    this.#sprite.scale.set(0.7);
-    // add cursor
-    this.#sprite.cursor = 'pointer';
-
-    // need to do this at construction time
-    // so future Components (e.g. wire draw) can connect to it
-    const { width, height } = this.#sprite.getSize();
-    this.setConnectionPoints([
-      // the sprite unfortunately doesn't sit flush
-      { x: this.getX() + 20, y: this.getY() + height - 18 },
-      // the sprite unfortunately doesn't sit flush
-      { x: this.getX() + width - 18, y: this.getY() + height - 18 },
-    ]);
-
-    // add click listener
+    // Configure interactivity
     this.#sprite.interactive = true;
-
+    this.#sprite.cursor = 'pointer';
     this.#sprite.on('pointerdown', () => {
       this.toggle();
     });
   }
 
-  toggle() {
+  toggle(): void {
     this.isEnabled = !this.isEnabled;
     this.#sprite.texture = this.isEnabled
       ? globalThis.sprites.switchOn
       : globalThis.sprites.switchOff;
   }
 
-  draw() {
-    globalThis.app.stage.addChild(this);
+  override draw(): void {
     globalThis.app.stage.addChild(this.#sprite);
+    this.drawConnectionPoints();
   }
 }
