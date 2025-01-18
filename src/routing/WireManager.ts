@@ -262,8 +262,12 @@ export class WireManager {
     }
 
     public calculateRoute(start: Port, end: Port): Wire {
+        // Always use waypoints if they exist in the creation state
         if (this.creationState.waypoints.length > 0) {
-            return this.calculateRouteWithWaypoints(start, end, this.creationState.waypoints);
+            const wire = this.calculateRouteWithWaypoints(start, end, this.creationState.waypoints);
+            // Store waypoints in the wire object
+            wire.waypoints = [...this.creationState.waypoints];
+            return wire;
         }
 
         const startGridPos = this.gridPositionFromPoint(start.position);
@@ -297,14 +301,15 @@ export class WireManager {
                 });
             }
         }
-        
+
         return {
             id: uuidv4(),
             path: segments,
             startComponent: start.component,
             endComponent: end.component,
             startPort: start,
-            endPort: end
+            endPort: end,
+            waypoints: []
         };
     }
 
@@ -405,6 +410,9 @@ export class WireManager {
         this.registerPort(endPort);
         const wire = this.calculateRoute(this.creationState.startPort, endPort);
 
+        // Store the result before resetting state
+        const result = wire;
+
         // Reset creation state
         this.creationState = {
             isDrawing: false,
@@ -415,7 +423,7 @@ export class WireManager {
             waypoints: []
         };
 
-        return wire;
+        return result;
     }
 
     public getCreationState(): WireCreationState {
@@ -567,8 +575,8 @@ export class WireManager {
             const isLast = i === allPoints.length - 1;
 
             wirePoints.push({
-                position: point,
-                type: isFirst || isLast ? 'component' : 'bend',
+                position: new Point(point.x, point.y), // Create new Point to avoid reference issues
+                type: isFirst || isLast ? 'component' : 'bend', // Use 'bend' for waypoints
                 connectionType: isFirst ? 'output' : isLast ? 'input' : undefined
             });
         }
@@ -580,47 +588,23 @@ export class WireManager {
             
             if (!current || !next) continue;
 
-            // For each pair of points, create necessary segments
-            const horizontalFirst = Math.abs(next.position.x - current.position.x) > 
-                                  Math.abs(next.position.y - current.position.y);
+            // Create L-shaped segments between points
+            const bendPoint: WirePoint = {
+                position: new Point(next.position.x, current.position.y),
+                type: 'bend'
+            };
 
-            if (horizontalFirst) {
-                // Horizontal segment
-                const bendPoint: WirePoint = {
-                    position: new Point(next.position.x, current.position.y),
-                    type: 'bend'
-                };
+            segments.push({
+                start: current,
+                end: bendPoint,
+                direction: 'horizontal'
+            });
 
-                segments.push({
-                    start: current,
-                    end: bendPoint,
-                    direction: 'horizontal'
-                });
-
-                segments.push({
-                    start: bendPoint,
-                    end: next,
-                    direction: 'vertical'
-                });
-            } else {
-                // Vertical segment
-                const bendPoint: WirePoint = {
-                    position: new Point(current.position.x, next.position.y),
-                    type: 'bend'
-                };
-
-                segments.push({
-                    start: current,
-                    end: bendPoint,
-                    direction: 'vertical'
-                });
-
-                segments.push({
-                    start: bendPoint,
-                    end: next,
-                    direction: 'horizontal'
-                });
-            }
+            segments.push({
+                start: bendPoint,
+                end: next,
+                direction: 'vertical'
+            });
         }
 
         return {

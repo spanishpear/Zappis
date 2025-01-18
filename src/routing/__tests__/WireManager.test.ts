@@ -133,8 +133,8 @@ describe('WireManager', () => {
             wireManager.startWireCreation(mockStartPort);
             
             // Add waypoints during creation
-            const waypoint1 = new Point(30, 10);
-            const waypoint2 = new Point(30, 90);
+            const waypoint1 = new Point(40, 20);  // Snapped to grid
+            const waypoint2 = new Point(40, 80);  // Snapped to grid
             wireManager.addWaypoint(waypoint1);
             wireManager.addWaypoint(waypoint2);
             
@@ -146,18 +146,30 @@ describe('WireManager', () => {
             expect(wire.path.length).toBeGreaterThan(2); // Should have more segments due to waypoints
             
             // Verify waypoints are used in the path
-            const hasWaypoint1 = wire.path.some(segment => 
-                (segment.start.position.x === waypoint1.x && segment.start.position.y === waypoint1.y) ||
-                (segment.end.position.x === waypoint1.x && segment.end.position.y === waypoint1.y)
+            const allPoints = wire.path
+                .filter(segment => segment.start && segment.end)
+                .flatMap(segment => 
+                    [segment.start!.position, segment.end!.position].filter((pos): pos is Point => pos !== undefined)
+                );
+            console.log('All points in path:', allPoints);
+            console.log('Looking for waypoint1:', waypoint1);
+            console.log('Looking for waypoint2:', waypoint2);
+            const hasWaypoint1 = allPoints.some(pos => 
+                Math.abs(pos.x - waypoint1.x) < 0.1 && Math.abs(pos.y - waypoint1.y) < 0.1
             );
+            const hasWaypoint2 = allPoints.some(pos => 
+                Math.abs(pos.x - waypoint2.x) < 0.1 && Math.abs(pos.y - waypoint2.y) < 0.1
+            );
+            
             expect(hasWaypoint1).toBe(true);
+            expect(hasWaypoint2).toBe(true);
         });
 
         it('should handle setting waypoints directly (JSON loading)', () => {
             // Set waypoints directly without starting wire creation
             const waypoints = [
-                new Point(50, 10),
-                new Point(50, 90)
+                new Point(60, 20),  // Snapped to grid
+                new Point(60, 80)   // Snapped to grid
             ];
             wireManager.setWaypoints(waypoints);
             
@@ -169,11 +181,23 @@ describe('WireManager', () => {
             expect(wire.path.length).toBeGreaterThan(2);
             
             // Verify waypoints are used in the path
-            const hasWaypoint = wire.path.some(segment => 
-                (segment.start.position.x === waypoints[0].x && segment.start.position.y === waypoints[0].y) ||
-                (segment.end.position.x === waypoints[0].x && segment.end.position.y === waypoints[0].y)
+            const allPoints = wire.path
+                .filter(segment => segment.start && segment.end)
+                .flatMap(segment => 
+                    [segment.start!.position, segment.end!.position].filter((pos): pos is Point => pos !== undefined)
+                );
+            console.log('All points in path:', allPoints);
+            console.log('Looking for waypoint1:', waypoints[0]);
+            console.log('Looking for waypoint2:', waypoints[1]);
+            const hasWaypoint1 = allPoints.some(pos => 
+                Math.abs(pos.x - waypoints[0].x) < 0.1 && Math.abs(pos.y - waypoints[0].y) < 0.1
             );
-            expect(hasWaypoint).toBe(true);
+            const hasWaypoint2 = allPoints.some(pos => 
+                Math.abs(pos.x - waypoints[1].x) < 0.1 && Math.abs(pos.y - waypoints[1].y) < 0.1
+            );
+            
+            expect(hasWaypoint1).toBe(true);
+            expect(hasWaypoint2).toBe(true);
         });
 
         it('should snap waypoints to grid when enabled', () => {
