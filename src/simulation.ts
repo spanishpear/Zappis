@@ -24,8 +24,8 @@ export class CircuitSimulation {
   private circuit: Circuit;
   private electrons: Electron[] = [];
   private isFlowing = false;
-  private readonly ELECTRON_COUNT = 5;
-  private readonly ELECTRON_SPEED = 0.1;
+  private readonly ELECTRON_COUNT = 10;
+  private readonly ELECTRON_SPEED = 0.01;
   private ticker: Ticker;
   private wirePoints: Point[] = [];
 

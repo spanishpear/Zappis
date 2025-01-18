@@ -19,8 +19,17 @@ export const bootstrap = async () => {
   const background =
     process.env.NODE_ENV === 'development' ? '#1099bb' : undefined;
 
-  // Initialize the application
-  await appInstance.init({ background, resizeTo: window });
+  const embedWidth = 800;
+  const embedHeight = 300;
+  // create instance of application, and rescale the stage to the embed size
+  await appInstance.init({
+    width: embedWidth,
+    height: embedHeight,
+    background,
+  });
+  // somehow calculate the scale based on the embed size
+  const scale = embedWidth / window.innerWidth;
+  appInstance.stage.scale.set(scale);
 
   // Initialize grid system
   globalThis.gridSystem = new GridSystem(window.innerWidth, window.innerHeight);

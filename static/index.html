@@ -1,9 +1,18 @@
 <!doctype html>
 <html>
 	<head>
+    <!-- jquery for resizing-->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- pixi.js -->
 		<script src="https://pixijs.download/release/pixi.js"></script>
 	</head>
   <body>
     <div id="<%= mountId %>"></div>
+    <script>
+      $('#board').resizable({
+            aspectRatio: 1020 / (1020 + 60),
+            minWidth: 1020 / 2
+      });
+    </script>
   </body>
 </html>
