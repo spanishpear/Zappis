@@ -3,12 +3,12 @@ import { GridSystem } from '../gridSystem';
 import { createDebugButton } from '../debug';
 
 export const setupSprites = async () => {
-    globalThis.sprites = {
-        battery: await Assets.load('sprites/battery.png'),
-        switchOn: await Assets.load('sprites/switch-on.png'),
-        switchOff: await Assets.load('sprites/switch-off.png'),
-        ledOn: await Assets.load('sprites/led_on.png'),
-        ledOff: await Assets.load('sprites/led_off.png'),
+  globalThis.sprites = {
+    battery: await Assets.load('sprites/battery.png'),
+    switchOn: await Assets.load('sprites/switch-on.png'),
+    switchOff: await Assets.load('sprites/switch-off.png'),
+    ledOn: await Assets.load('sprites/led_on.png'),
+    ledOff: await Assets.load('sprites/led_off.png'),
   };
 };
 

@@ -20,7 +20,7 @@ export class LED extends Component {
       // the sprite unfortunately doesn't sit flush
       { x: this.getX() + width / 2, y: this.getY() + 20 },
       // the sprite unfortunately doesn't sit flush
-      { x: this.getX() + width / 2, y: this.getY() - 20},
+      { x: this.getX() + width / 2, y: this.getY() - 20 },
     ]);
 
     this.#sprite.interactive = true;

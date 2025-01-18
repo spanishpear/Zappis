@@ -97,7 +97,7 @@ export const circuitFromConfig = async (config: CircuitConfig) => {
 
     // Add waypoints if they exist
     if (wireConfig.waypoints) {
-      const points = wireConfig.waypoints.map(wp => new Point(wp.x, wp.y));
+      const points = wireConfig.waypoints.map((wp) => new Point(wp.x, wp.y));
       wire.setWaypoints(points);
     }
 
