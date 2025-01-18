@@ -28,7 +28,10 @@
     },
     {
       "start": { "component": "switch1", "index": 0 },
-      "end": { "component": "led1", "index": 0 }
+      "end": { "component": "led1", "index": 0 },
+      "waypoints": [
+        { "x": 550, "y": 600 }
+      ]
     },
     {
       "start": { "component": "led1", "index": 1 },

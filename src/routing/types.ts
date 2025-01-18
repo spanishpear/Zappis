@@ -49,6 +49,7 @@ export interface Wire {
     endComponent: Component;
     startPort: Port;
     endPort: Port;
+    waypoints?: Point[]; // Optional array of manual waypoints
 }
 
 export interface WireCreationState {
@@ -57,6 +58,7 @@ export interface WireCreationState {
     currentPath: WirePoint[];
     previewPath: WirePoint[];
     validEndPoints: Port[];
+    waypoints: Point[]; // Track waypoints during wire creation
 }
 
 // Validation types
@@ -74,4 +76,10 @@ export interface PathfindingOptions {
     routingStyle: RoutingStyle;
     smoothing: boolean;
     clearanceCheck: boolean;
+}
+
+// New type for waypoint management
+export interface WayPointOptions {
+    enforceWaypoints: boolean; // Whether to strictly follow waypoints or allow optimization
+    snapToGrid: boolean; // Whether waypoints should snap to grid
 } 

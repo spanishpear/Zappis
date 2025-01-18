@@ -10,7 +10,8 @@ import type {
     WireSegment,
     RoutingStyle,
     ComponentClearance,
-    PathfindingOptions
+    PathfindingOptions,
+    WayPointOptions
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,6 +22,7 @@ export class WireManager {
     private grid: Map<string, GridNode>;
     private clearanceZones: ComponentClearance[];
     private routingStyle: RoutingStyle;
+    private waypointOptions: WayPointOptions;
     private readonly GRID_SIZE = 20; // Increased from 5 to 20 for smoother paths
     private readonly MIN_GRID = 0;
     private readonly MAX_GRID = 100;
@@ -31,12 +33,17 @@ export class WireManager {
         this.grid = new Map();
         this.clearanceZones = [];
         this.routingStyle = 'manhattan';
+        this.waypointOptions = {
+            enforceWaypoints: true,
+            snapToGrid: true
+        };
         this.creationState = {
             isDrawing: false,
             startPort: null,
             currentPath: [],
             previewPath: [],
-            validEndPoints: []
+            validEndPoints: [],
+            waypoints: []
         };
     }
 
@@ -255,23 +262,26 @@ export class WireManager {
     }
 
     public calculateRoute(start: Port, end: Port): Wire {
+        if (this.creationState.waypoints.length > 0) {
+            return this.calculateRouteWithWaypoints(start, end, this.creationState.waypoints);
+        }
+
         const startGridPos = this.gridPositionFromPoint(start.position);
         const endGridPos = this.gridPositionFromPoint(end.position);
         
-        const path = this.findPath(startGridPos, endGridPos);
+        const pathResult = this.findPath(startGridPos, endGridPos);
         
-        if (!path) {
-            // Fallback to simple L-shaped route if no path found
+        if (!pathResult || pathResult.length === 0) {
             return this.createSimpleRoute(start, end);
         }
         
         // Convert path to wire segments
-        const wirePoints: WirePoint[] = path.map((pos, index) => ({
+        const wirePoints: WirePoint[] = pathResult.map((pos): WirePoint => ({
             position: this.pointFromGridPosition(pos),
-            type: index === 0 ? 'component' : 
-                  index === path.length - 1 ? 'component' : 'bend',
-            connectionType: index === 0 ? 'output' :
-                          index === path.length - 1 ? 'input' : undefined
+            type: pos === pathResult[0] ? 'component' : 
+                  pos === pathResult[pathResult.length - 1] ? 'component' : 'bend',
+            connectionType: pos === pathResult[0] ? 'output' :
+                          pos === pathResult[pathResult.length - 1] ? 'input' : undefined
         }));
         
         const segments: WireSegment[] = [];
@@ -361,7 +371,8 @@ export class WireManager {
             startPort,
             currentPath: [],
             previewPath: [],
-            validEndPoints: []
+            validEndPoints: [],
+            waypoints: []
         };
     }
 
@@ -385,14 +396,14 @@ export class WireManager {
         ]);
     }
 
-    public completeWire(endPort: Port): Wire {
-        if (!this.creationState.startPort) {
-            throw new Error('No wire creation in progress');
+    public completeWire(endPort: Port): Wire | null {
+        if (!this.creationState.isDrawing || !this.creationState.startPort) {
+            console.warn('No wire creation in progress');
+            return null;
         }
 
         this.registerPort(endPort);
         const wire = this.calculateRoute(this.creationState.startPort, endPort);
-        this.wires.set(wire.id, wire);
 
         // Reset creation state
         this.creationState = {
@@ -400,7 +411,8 @@ export class WireManager {
             startPort: null,
             currentPath: [],
             previewPath: [],
-            validEndPoints: []
+            validEndPoints: [],
+            waypoints: []
         };
 
         return wire;
@@ -444,7 +456,9 @@ export class WireManager {
     public smoothPath(path: GridPosition[]): GridPosition[] {
         if (path.length <= 2) return path;
 
-        const smoothed: GridPosition[] = [path[0]];
+        const smoothed: GridPosition[] = [];
+        if (path[0]) smoothed.push(path[0]);
+        
         let current = 0;
 
         while (current < path.length - 1) {
@@ -501,5 +515,122 @@ export class WireManager {
         }
 
         return true;
+    }
+
+    public setWaypointOptions(options: WayPointOptions): void {
+        this.waypointOptions = options;
+    }
+
+    public addWaypoint(point: Point): void {
+        if (!this.creationState.isDrawing) {
+            throw new Error('No wire creation in progress');
+        }
+
+        if (this.waypointOptions.snapToGrid) {
+            point = new Point(
+                Math.round(point.x / this.GRID_SIZE) * this.GRID_SIZE,
+                Math.round(point.y / this.GRID_SIZE) * this.GRID_SIZE
+            );
+        }
+
+        this.creationState.waypoints.push(point);
+        this.updatePreview(point);
+    }
+
+    // New method for setting waypoints directly (used when loading from JSON)
+    public setWaypoints(points: Point[]): void {
+        this.creationState.waypoints = points.map(p => 
+            this.waypointOptions.snapToGrid 
+                ? new Point(
+                    Math.round(p.x / this.GRID_SIZE) * this.GRID_SIZE,
+                    Math.round(p.y / this.GRID_SIZE) * this.GRID_SIZE
+                  )
+                : new Point(p.x, p.y)
+        );
+    }
+
+    private calculateRouteWithWaypoints(start: Port, end: Port, waypoints: Point[]): Wire {
+        if (!waypoints.length) {
+            return this.createSimpleRoute(start, end);
+        }
+
+        const allPoints = [start.position, ...waypoints, end.position];
+        const segments: WireSegment[] = [];
+        const wirePoints: WirePoint[] = [];
+
+        // Create wire points for each waypoint
+        for (let i = 0; i < allPoints.length; i++) {
+            const point = allPoints[i];
+            if (!point) continue;
+            
+            const isFirst = i === 0;
+            const isLast = i === allPoints.length - 1;
+
+            wirePoints.push({
+                position: point,
+                type: isFirst || isLast ? 'component' : 'bend',
+                connectionType: isFirst ? 'output' : isLast ? 'input' : undefined
+            });
+        }
+
+        // Create segments between points
+        for (let i = 0; i < wirePoints.length - 1; i++) {
+            const current = wirePoints[i];
+            const next = wirePoints[i + 1];
+            
+            if (!current || !next) continue;
+
+            // For each pair of points, create necessary segments
+            const horizontalFirst = Math.abs(next.position.x - current.position.x) > 
+                                  Math.abs(next.position.y - current.position.y);
+
+            if (horizontalFirst) {
+                // Horizontal segment
+                const bendPoint: WirePoint = {
+                    position: new Point(next.position.x, current.position.y),
+                    type: 'bend'
+                };
+
+                segments.push({
+                    start: current,
+                    end: bendPoint,
+                    direction: 'horizontal'
+                });
+
+                segments.push({
+                    start: bendPoint,
+                    end: next,
+                    direction: 'vertical'
+                });
+            } else {
+                // Vertical segment
+                const bendPoint: WirePoint = {
+                    position: new Point(current.position.x, next.position.y),
+                    type: 'bend'
+                };
+
+                segments.push({
+                    start: current,
+                    end: bendPoint,
+                    direction: 'vertical'
+                });
+
+                segments.push({
+                    start: bendPoint,
+                    end: next,
+                    direction: 'horizontal'
+                });
+            }
+        }
+
+        return {
+            id: uuidv4(),
+            path: segments,
+            startComponent: start.component,
+            endComponent: end.component,
+            startPort: start,
+            endPort: end,
+            waypoints: waypoints
+        };
     }
 } 

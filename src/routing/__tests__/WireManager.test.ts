@@ -119,12 +119,80 @@ describe('WireManager', () => {
             // Complete wire
             const wire = wireManager.completeWire(mockEndPort);
             expect(wire).toBeDefined();
+            if (!wire) return;
             expect(wire.startPort).toBe(mockStartPort);
             expect(wire.endPort).toBe(mockEndPort);
             
             // Check creation state is reset
             expect(wireManager.getCreationState().isDrawing).toBe(false);
             expect(wireManager.getCreationState().startPort).toBeNull();
+        });
+
+        it('should handle interactive wire creation with waypoints', () => {
+            // Start wire creation
+            wireManager.startWireCreation(mockStartPort);
+            
+            // Add waypoints during creation
+            const waypoint1 = new Point(30, 10);
+            const waypoint2 = new Point(30, 90);
+            wireManager.addWaypoint(waypoint1);
+            wireManager.addWaypoint(waypoint2);
+            
+            // Complete wire
+            const wire = wireManager.completeWire(mockEndPort);
+            expect(wire).toBeDefined();
+            if (!wire) return;
+            
+            expect(wire.path.length).toBeGreaterThan(2); // Should have more segments due to waypoints
+            
+            // Verify waypoints are used in the path
+            const hasWaypoint1 = wire.path.some(segment => 
+                (segment.start.position.x === waypoint1.x && segment.start.position.y === waypoint1.y) ||
+                (segment.end.position.x === waypoint1.x && segment.end.position.y === waypoint1.y)
+            );
+            expect(hasWaypoint1).toBe(true);
+        });
+
+        it('should handle setting waypoints directly (JSON loading)', () => {
+            // Set waypoints directly without starting wire creation
+            const waypoints = [
+                new Point(50, 10),
+                new Point(50, 90)
+            ];
+            wireManager.setWaypoints(waypoints);
+            
+            // Calculate route with the waypoints
+            const wire = wireManager.calculateRoute(mockStartPort, mockEndPort);
+            expect(wire).toBeDefined();
+            if (!wire) return;
+            
+            expect(wire.path.length).toBeGreaterThan(2);
+            
+            // Verify waypoints are used in the path
+            const hasWaypoint = wire.path.some(segment => 
+                (segment.start.position.x === waypoints[0].x && segment.start.position.y === waypoints[0].y) ||
+                (segment.end.position.x === waypoints[0].x && segment.end.position.y === waypoints[0].y)
+            );
+            expect(hasWaypoint).toBe(true);
+        });
+
+        it('should snap waypoints to grid when enabled', () => {
+            wireManager.setWaypointOptions({ snapToGrid: true, enforceWaypoints: true });
+            
+            // Set waypoint at 22,22 (should snap to 20,20 with default grid size)
+            const waypoints = [new Point(22, 22)];
+            wireManager.setWaypoints(waypoints);
+            
+            const wire = wireManager.calculateRoute(mockStartPort, mockEndPort);
+            expect(wire).toBeDefined();
+            if (!wire) return;
+            
+            // Verify the waypoint was snapped to grid
+            const hasSnappedWaypoint = wire.path.some(segment => 
+                (segment.start.position.x === 20 && segment.start.position.y === 20) ||
+                (segment.end.position.x === 20 && segment.end.position.y === 20)
+            );
+            expect(hasSnappedWaypoint).toBe(true);
         });
     });
 }); 

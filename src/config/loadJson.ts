@@ -4,6 +4,7 @@ import { Switch } from '../switch';
 import { Battery } from '../battery';
 import { LED } from '../LED';
 import { SmartWire } from '../routing/SmartWire';
+import { Point } from 'pixi.js';
 
 interface CircuitConfig {
   // Ideally we would have a generic type for the components
@@ -29,6 +30,7 @@ interface CircuitConfig {
       component: string;
       index: number;
     };
+    waypoints?: { x: number; y: number }[];
   }[];
 }
 
@@ -92,6 +94,13 @@ export const circuitFromConfig = async (config: CircuitConfig) => {
       wireConfig.start.index,
       wireConfig.end.index,
     );
+
+    // Add waypoints if they exist
+    if (wireConfig.waypoints) {
+      const points = wireConfig.waypoints.map(wp => new Point(wp.x, wp.y));
+      wire.setWaypoints(points);
+    }
+
     circuit.addElement(wire);
   }
   return circuit;

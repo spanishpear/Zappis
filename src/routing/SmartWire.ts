@@ -70,6 +70,14 @@ export class SmartWire extends Component {
         startComponent.connectTo(startIdx, endComponent, endIdx);
     }
 
+    public addWaypoint(point: Point): void {
+        this.wireManager.addWaypoint(point);
+    }
+
+    public setWaypoints(points: Point[]): void {
+        this.wireManager.setWaypoints(points);
+    }
+
     override draw(): void {
         this.clear();
 
