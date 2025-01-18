@@ -3,21 +3,21 @@
     {
       "id": "battery1",
       "type": "Battery",
-      "x": 950,
+      "x": 800,
       "y": 0,
       "voltage": 1.5
     },
     {
       "id": "switch1",
       "type": "Switch",
-      "x": 1150,
+      "x": 850,
       "y": 420,
       "isEnabled": true
     },
     {
       "id": "led1",
       "type": "LED",
-      "x": 600,
+      "x": 350,
       "y": 540
     }
   ],
@@ -26,15 +26,15 @@
       "start": { "component": "battery1", "index": 1 },
       "end": { "component": "switch1", "index": 1 },
       "waypoints": [
-        { "x": 1450, "y": 300 },
-        { "x": 1450, "y": 640 }
+        { "x": 1300, "y": 300 },
+        { "x": 1300, "y": 630 }
       ]
     },
     {
       "start": { "component": "switch1", "index": 0 },
       "end": { "component": "led1", "index": 0 },
       "waypoints": [
-        { "x": 730, "y": 630 }
+        { "x": 480, "y": 630 }
       ]
     },
     {

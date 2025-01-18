@@ -17,7 +17,7 @@ export const bootstrap = async () => {
   const appInstance = new Application();
 
   const background =
-    process.env.NODE_ENV === 'development' ? '#1099bb' : undefined;
+    process.env.NODE_ENV === 'development' ? '#1099bb' : '#1d1e20';
 
   const embedWidth = 800;
   const embedHeight = 300;
