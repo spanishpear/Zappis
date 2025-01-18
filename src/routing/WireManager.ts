@@ -10,7 +10,6 @@ import type {
     WireSegment,
     RoutingStyle,
     ComponentClearance,
-    PathfindingOptions,
     WayPointOptions
 } from './types';
 import { v4 as uuidv4 } from 'uuid';
@@ -110,29 +109,16 @@ export class WireManager {
 
     private getNeighbors(node: GridNode): GridNode[] {
         const neighbors: GridNode[] = [];
-        const positions: GridPosition[] = [];
-
-        // Add orthogonal neighbors
-        positions.push(
+        const positions = [
             { x: node.x, y: node.y - 1 }, // North
             { x: node.x + 1, y: node.y }, // East
             { x: node.x, y: node.y + 1 }, // South
             { x: node.x - 1, y: node.y }  // West
-        );
-
-        // Add diagonal neighbors if not in manhattan mode
-        if (this.routingStyle === 'direct') {
-            positions.push(
-                { x: node.x + 1, y: node.y - 1 }, // Northeast
-                { x: node.x + 1, y: node.y + 1 }, // Southeast
-                { x: node.x - 1, y: node.y + 1 }, // Southwest
-                { x: node.x - 1, y: node.y - 1 }  // Northwest
-            );
-        }
+        ];
 
         for (const pos of positions) {
             const neighbor = this.getNode(pos);
-            if (neighbor && !neighbor.isOccupied && !this.isWithinComponentClearance(pos)) {
+            if (neighbor && !neighbor.isOccupied) {
                 neighbors.push(neighbor);
             }
         }

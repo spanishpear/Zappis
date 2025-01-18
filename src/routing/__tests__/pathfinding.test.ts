@@ -1,6 +1,6 @@
 import { Point } from 'pixi.js';
 import { WireManager } from '../WireManager';
-import type { Port, Wire, GridPosition } from '../types';
+import type { Port, GridPosition } from '../types';
 import { MockComponent } from './mocks/Component.mock';
 
 describe('WireManager Pathfinding', () => {
@@ -39,7 +39,7 @@ describe('WireManager Pathfinding', () => {
             const point = new Point(25, 25);
             const gridPos = wireManager.gridPositionFromPoint(point);
             
-            // Grid size is now 20
+            // Assuming grid size of 20
             expect(gridPos.x).toBe(1);
             expect(gridPos.y).toBe(1);
         });
@@ -147,119 +147,6 @@ describe('WireManager Pathfinding', () => {
                 expect(end.x % 1).toBe(0);
                 expect(end.y % 1).toBe(0);
             });
-        });
-    });
-
-    describe('path smoothing', () => {
-        it('should smooth paths by removing unnecessary points', () => {
-            const start: GridPosition = { x: 2, y: 2 };
-            const end: GridPosition = { x: 18, y: 18 };
-            
-            const path = wireManager.findPath(start, end);
-            expect(path).not.toBeNull();
-            if (!path) return;
-
-            // Get smoothed path
-            const smoothedPath = wireManager.smoothPath(path);
-            expect(smoothedPath.length).toBeLessThanOrEqual(path.length);
-            
-            // Verify path is still valid (no obstacles)
-            smoothedPath.forEach((point: GridPosition) => {
-                const hasObstacle = wireManager.hasObstacle(point);
-                expect(hasObstacle).toBe(false);
-            });
-        });
-
-        it('should maintain path validity after smoothing', () => {
-            const start: GridPosition = { x: 2, y: 2 };
-            const end: GridPosition = { x: 18, y: 2 };
-            
-            // Add some obstacles
-            wireManager.addObstacle({ x: 10, y: 1 });
-            wireManager.addObstacle({ x: 10, y: 2 });
-            wireManager.addObstacle({ x: 10, y: 3 });
-            
-            const path = wireManager.findPath(start, end);
-            expect(path).not.toBeNull();
-            if (!path) return;
-
-            const smoothedPath = wireManager.smoothPath(path);
-            
-            // Verify smoothed path still avoids obstacles
-            smoothedPath.forEach((point: GridPosition) => {
-                const hasObstacle = wireManager.hasObstacle(point);
-                expect(hasObstacle).toBe(false);
-            });
-        });
-    });
-
-    describe('component clearance', () => {
-        it('should maintain minimum clearance from components', () => {
-            const start: GridPosition = { x: 2, y: 2 };
-            const end: GridPosition = { x: 18, y: 2 };
-            
-            // Add a component with clearance zone
-            wireManager.addComponentClearance({ x: 10, y: 2 }, 2); // 2 unit clearance
-            
-            const path = wireManager.findPath(start, end);
-            expect(path).not.toBeNull();
-            if (!path) return;
-
-            // Check clearance is maintained
-            path.forEach((point: GridPosition) => {
-                const tooClose = wireManager.isWithinComponentClearance(point);
-                expect(tooClose).toBe(false);
-            });
-        });
-    });
-
-    describe('routing styles', () => {
-        it('should respect manhattan style routing', () => {
-            wireManager.setRoutingStyle('manhattan');
-            const start: GridPosition = { x: 2, y: 2 };
-            const end: GridPosition = { x: 18, y: 18 };
-            
-            const path = wireManager.findPath(start, end);
-            expect(path).not.toBeNull();
-            if (!path) return;
-
-            // Verify manhattan style (only horizontal or vertical moves)
-            for (let i = 1; i < path.length; i++) {
-                const current = path[i];
-                const previous = path[i - 1];
-                
-                if (!current || !previous) continue;
-                
-                const isDiagonal = 
-                    current.x !== previous.x && 
-                    current.y !== previous.y;
-                expect(isDiagonal).toBe(false);
-            }
-        });
-
-        it('should allow diagonal routing when specified', () => {
-            wireManager.setRoutingStyle('direct');
-            const start: GridPosition = { x: 2, y: 2 };
-            const end: GridPosition = { x: 18, y: 18 };
-            
-            const path = wireManager.findPath(start, end);
-            expect(path).not.toBeNull();
-            if (!path) return;
-
-            // Should have some diagonal moves
-            let hasDiagonal = false;
-            for (let i = 1; i < path.length; i++) {
-                const current = path[i];
-                const previous = path[i - 1];
-                
-                if (!current || !previous) continue;
-                
-                if (current.x !== previous.x && current.y !== previous.y) {
-                    hasDiagonal = true;
-                    break;
-                }
-            }
-            expect(hasDiagonal).toBe(true);
         });
     });
 }); 

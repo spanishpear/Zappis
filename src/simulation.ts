@@ -1,6 +1,7 @@
 import type { Circuit } from './circuit';
 import { Graphics, Ticker } from 'pixi.js';
 import type { Component } from './component';
+import { Wire } from './wire';
 import { SmartWire } from './routing/SmartWire';
 
 interface Point {
@@ -40,7 +41,6 @@ export class CircuitSimulation {
       electron.visible = false;
     });
   }
-
   startFlow() {
     if (this.isFlowing || !this.circuit.getIsCircuitClosed()) return;
 
@@ -102,52 +102,53 @@ export class CircuitSimulation {
   }
 
   private initializeElectrons() {
+    const spacing = 1.0 / this.ELECTRON_COUNT;
+
     for (let i = 0; i < this.ELECTRON_COUNT; i++) {
       const electron = new Electron();
-      electron.currentIndex = Math.floor(
-        (i * this.wirePoints.length) / this.ELECTRON_COUNT,
-      );
-      this.positionElectron(electron);
+      electron.progress = i * spacing;
       this.electrons.push(electron);
       globalThis.app.stage.addChild(electron);
     }
   }
 
-  private positionElectron(electron: Electron) {
-    const point = this.wirePoints[electron.currentIndex];
-    if (point) {
-      electron.position.set(point.x, point.y);
+  private updateElectrons = () => {
+    if (
+      !this.circuit.calculateIsCircuitClosed() ||
+      this.wirePoints.length < 2
+    ) {
+      this.stopFlow();
+      return;
     }
-  }
+    // isFlowing is set by stopFlow
+    // so, on a given tick, if the above branch is false, then the circuit must be closed - and we should start the flow
+    this.startFlow();
 
-  private updateElectrons() {
-    if (!this.isFlowing) return;
-
+    // Basically for each tick
     this.electrons.forEach((electron) => {
-      electron.progress += this.ELECTRON_SPEED;
+      // Update progress
+      electron.progress += this.ELECTRON_SPEED / 100;
       if (electron.progress >= 1) {
         electron.progress = 0;
-        electron.currentIndex++;
-        if (electron.currentIndex >= this.wirePoints.length) {
-          electron.currentIndex = 0;
-        }
       }
 
-      const currentPoint = this.wirePoints[electron.currentIndex];
-      const nextPoint =
-        this.wirePoints[
-          (electron.currentIndex + 1) % this.wirePoints.length
-        ];
+      // Find position along wire path
+      const totalSegments = this.wirePoints.length - 1;
+      const currentSegmentIndex = Math.floor(electron.progress * totalSegments);
+      const nextSegmentIndex = Math.min(currentSegmentIndex + 1, totalSegments);
 
-      if (currentPoint && nextPoint) {
-        const x =
-          currentPoint.x +
-          (nextPoint.x - currentPoint.x) * electron.progress;
-        const y =
-          currentPoint.y +
-          (nextPoint.y - currentPoint.y) * electron.progress;
-        electron.position.set(x, y);
-      }
+      const start = this.wirePoints[currentSegmentIndex];
+      const end = this.wirePoints[nextSegmentIndex];
+
+      if (!start || !end) return;
+
+      // Calculate position within segment
+      const segmentProgress = (electron.progress * totalSegments) % 1;
+      const x = start.x + (end.x - start.x) * segmentProgress;
+      const y = start.y + (end.y - start.y) * segmentProgress;
+
+      // Update electron position
+      electron.position.set(x, y);
     });
-  }
+  };
 }

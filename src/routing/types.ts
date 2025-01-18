@@ -4,7 +4,6 @@ import type { Component } from '../component';
 export type Direction = 'north' | 'south' | 'east' | 'west';
 export type PointType = 'component' | 'bend' | 'junction';
 export type ConnectionType = 'input' | 'output';
-export type RoutingStyle = 'manhattan' | 'direct' | 'smooth';
 
 // Grid types for pathfinding
 export interface GridNode {
@@ -71,6 +70,8 @@ export interface ComponentClearance {
     position: GridPosition;
     radius: number;
 }
+
+export type RoutingStyle = 'manhattan' | 'direct' | 'smooth';
 
 export interface PathfindingOptions {
     routingStyle: RoutingStyle;
