@@ -82,6 +82,162 @@ describe('WireManager', () => {
         expect(isDiagonal).toBe(false);
       });
     });
+
+    it('should ensure all segments are strictly horizontal or vertical', () => {
+      // Create a wire with waypoints that could potentially cause diagonal segments
+      const waypoints = [
+        new Point(60, 20),
+        new Point(60, 80),
+        new Point(90, 80)
+      ];
+      wireManager.setWaypoints(waypoints);
+      
+      const wire = wireManager.calculateRoute(mockStartPort, mockEndPort);
+      expect(wire).toBeDefined();
+      if (!wire) return;
+
+      // Verify each segment is either horizontal or vertical
+      wire.path.forEach(segment => {
+        const isHorizontal = segment.start.position.y === segment.end.position.y;
+        const isVertical = segment.start.position.x === segment.end.position.x;
+        
+        // Each segment must be either horizontal or vertical, not diagonal
+        expect(isHorizontal || isVertical).toBe(true);
+        
+        // Direction property should match the actual segment orientation
+        if (isHorizontal) {
+          expect(segment.direction).toBe('horizontal');
+        } else {
+          expect(segment.direction).toBe('vertical');
+        }
+      });
+
+      // Verify that no two consecutive segments can be diagonal
+      for (let i = 1; i < wire.path.length; i++) {
+        const current = wire.path[i];
+        const previous = wire.path[i - 1];
+        
+        if (!current || !previous) continue;
+        
+        const currentIsDiagonal = 
+          current.start.position.x !== current.end.position.x && 
+          current.start.position.y !== current.end.position.y;
+        
+        const previousIsDiagonal = 
+          previous.start.position.x !== previous.end.position.x && 
+          previous.start.position.y !== previous.end.position.y;
+        
+        expect(currentIsDiagonal).toBe(false);
+        expect(previousIsDiagonal).toBe(false);
+      }
+    });
+
+    it('should handle corner waypoints correctly', () => {
+      // Create a wire with a corner waypoint
+      const waypoints = [
+        new Point(90, 90) // Corner waypoint
+      ];
+      wireManager.setWaypoints(waypoints);
+      
+      const wire = wireManager.calculateRoute(mockStartPort, mockEndPort);
+      expect(wire).toBeDefined();
+      if (!wire) return;
+
+      // Verify the path includes the corner waypoint
+      const allPoints = wire.path
+        .filter(segment => segment.start && segment.end)
+        .flatMap(segment => {
+          if (!segment.start || !segment.end) return [];
+          return [segment.start.position, segment.end.position];
+        });
+
+      // The corner waypoint should be present in the path
+      const waypoint = waypoints[0];
+      if (!waypoint) return;
+      
+      const hasCornerWaypoint = allPoints.some(pos => 
+        Math.abs(pos.x - waypoint.x) < 0.1 && Math.abs(pos.y - waypoint.y) < 0.1
+      );
+      expect(hasCornerWaypoint).toBe(true);
+
+      // Verify segments leading to and from the corner are properly oriented
+      const cornerSegments = wire.path.filter(segment => {
+        if (!segment.start || !segment.end) return false;
+        return (
+          Math.abs(segment.start.position.x - waypoint.x) < 0.1 || 
+          Math.abs(segment.end.position.x - waypoint.x) < 0.1 ||
+          Math.abs(segment.start.position.y - waypoint.y) < 0.1 ||
+          Math.abs(segment.end.position.y - waypoint.y) < 0.1
+        );
+      });
+
+      expect(cornerSegments.length).toBeGreaterThanOrEqual(2);
+      
+      // Verify that segments around the corner maintain proper orientation
+      cornerSegments.forEach(segment => {
+        const isHorizontal = segment.start.position.y === segment.end.position.y;
+        const isVertical = segment.start.position.x === segment.end.position.x;
+        expect(isHorizontal || isVertical).toBe(true);
+      });
+    });
+
+    it('should maintain consistent segment lengths for electron density', () => {
+      // Create a wire with waypoints that would create long segments
+      const waypoints = [
+        new Point(60, 20),
+        new Point(60, 80),
+        new Point(90, 80)
+      ];
+      wireManager.setWaypoints(waypoints);
+      
+      const wire = wireManager.calculateRoute(mockStartPort, mockEndPort);
+      expect(wire).toBeDefined();
+      if (!wire) return;
+
+      // Get all segment lengths
+      const segmentLengths = wire.path.map(segment => {
+        if (!segment.start || !segment.end) return 0;
+        const dx = segment.end.position.x - segment.start.position.x;
+        const dy = segment.end.position.y - segment.start.position.y;
+        return Math.sqrt(dx * dx + dy * dy);
+      }).filter(length => length > 0);
+
+      // Calculate the maximum segment length
+      const maxLength = Math.max(...segmentLengths);
+      const GRID_SIZE = 20; // Same as WireManager's GRID_SIZE
+      const MAX_SEGMENT_LENGTH = GRID_SIZE * 3; // Maximum length for consistent electron density
+
+      // Verify that no segment is too long
+      expect(maxLength).toBeLessThanOrEqual(MAX_SEGMENT_LENGTH);
+
+      // Verify that segments with similar orientations have similar lengths
+      const horizontalLengths = wire.path
+        .filter(segment => segment.direction === 'horizontal')
+        .map(segment => {
+          if (!segment.start || !segment.end) return 0;
+          return Math.abs(segment.end.position.x - segment.start.position.x);
+        })
+        .filter(length => length > 0);
+
+      const verticalLengths = wire.path
+        .filter(segment => segment.direction === 'vertical')
+        .map(segment => {
+          if (!segment.start || !segment.end) return 0;
+          return Math.abs(segment.end.position.y - segment.start.position.y);
+        })
+        .filter(length => length > 0);
+
+      // Calculate length variations
+      const maxHorizontalLength = Math.max(...horizontalLengths);
+      const minHorizontalLength = Math.min(...horizontalLengths);
+      const maxVerticalLength = Math.max(...verticalLengths);
+      const minVerticalLength = Math.min(...verticalLengths);
+
+      // Allow some variation but not too much
+      const MAX_LENGTH_VARIATION = GRID_SIZE * 2;
+      expect(maxHorizontalLength - minHorizontalLength).toBeLessThanOrEqual(MAX_LENGTH_VARIATION);
+      expect(maxVerticalLength - minVerticalLength).toBeLessThanOrEqual(MAX_LENGTH_VARIATION);
+    });
   });
 
   describe('findNearestValidPort', () => {

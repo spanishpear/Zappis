@@ -598,23 +598,81 @@ export class WireManager {
 
       if (!current || !next) continue;
 
-      // Create L-shaped segments between points
-      const bendPoint: WirePoint = {
-        position: new Point(next.position.x, current.position.y),
-        type: 'bend',
-      };
+      // First create a horizontal segment to align X coordinates
+      if (current.position.x !== next.position.x) {
+        const dx = next.position.x - current.position.x;
+        const numSegments = Math.ceil(Math.abs(dx) / (this.GRID_SIZE * 2));
+        const segmentDx = dx / numSegments;
 
-      segments.push({
-        start: current,
-        end: bendPoint,
-        direction: 'horizontal',
-      });
+        let lastPoint = current;
+        for (let j = 1; j <= numSegments; j++) {
+          const intermediatePoint: WirePoint = {
+            position: new Point(
+              current.position.x + segmentDx * j,
+              current.position.y
+            ),
+            type: 'bend'
+          };
 
-      segments.push({
-        start: bendPoint,
-        end: next,
-        direction: 'vertical',
-      });
+          segments.push({
+            start: lastPoint,
+            end: intermediatePoint,
+            direction: 'horizontal'
+          });
+
+          lastPoint = intermediatePoint;
+        }
+
+        // Then create a vertical segment to reach the target Y coordinate
+        if (current.position.y !== next.position.y) {
+          const dy = next.position.y - current.position.y;
+          const numVerticalSegments = Math.ceil(Math.abs(dy) / (this.GRID_SIZE * 2));
+          const segmentDy = dy / numVerticalSegments;
+
+          let lastVerticalPoint = lastPoint;
+          for (let j = 1; j <= numVerticalSegments; j++) {
+            const intermediatePoint: WirePoint = {
+              position: new Point(
+                next.position.x,
+                current.position.y + segmentDy * j
+              ),
+              type: 'bend'
+            };
+
+            segments.push({
+              start: lastVerticalPoint,
+              end: intermediatePoint,
+              direction: 'vertical'
+            });
+
+            lastVerticalPoint = intermediatePoint;
+          }
+        }
+      } else if (current.position.y !== next.position.y) {
+        // If X coordinates are already aligned, just create vertical segments
+        const dy = next.position.y - current.position.y;
+        const numSegments = Math.ceil(Math.abs(dy) / (this.GRID_SIZE * 2));
+        const segmentDy = dy / numSegments;
+
+        let lastPoint = current;
+        for (let j = 1; j <= numSegments; j++) {
+          const intermediatePoint: WirePoint = {
+            position: new Point(
+              current.position.x,
+              current.position.y + segmentDy * j
+            ),
+            type: 'bend'
+          };
+
+          segments.push({
+            start: lastPoint,
+            end: intermediatePoint,
+            direction: 'vertical'
+          });
+
+          lastPoint = intermediatePoint;
+        }
+      }
     }
 
     return {
