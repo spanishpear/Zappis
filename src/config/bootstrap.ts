@@ -29,7 +29,7 @@ export const bootstrap = async () => {
   });
   // somehow calculate the scale based on the embed size
   const scale = embedWidth / window.innerWidth;
-  appInstance.stage.scale.set(scale);
+  appInstance.stage.scale.set(0.4);
 
   // Initialize grid system
   globalThis.gridSystem = new GridSystem(window.innerWidth, window.innerHeight);

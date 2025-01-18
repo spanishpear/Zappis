@@ -15,7 +15,7 @@ export class SmartWire extends Component {
     endComponent: Component,
     startIdx: number,
     endIdx: number,
-    strokeWidth = 15,
+    strokeWidth = 20,
     color = '0x000000',
   ) {
     super();

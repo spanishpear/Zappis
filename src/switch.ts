@@ -15,7 +15,6 @@ export class Switch extends Component {
     this.#sprite = new Sprite(globalThis.sprites.switchOn);
     this.#sprite.x = x;
     this.#sprite.y = y;
-    this.#sprite.scale.set(0.7);
     // add cursor
     this.#sprite.cursor = 'pointer';
 

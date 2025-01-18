@@ -11,7 +11,6 @@ export class LED extends Component {
     this.#sprite = new Sprite(globalThis.sprites.ledOn);
     this.#sprite.x = x;
     this.#sprite.y = y;
-    this.#sprite.scale.set(0.6);
     this.#sprite.anchor.set(0.5);
     this.#sprite.angle = 270;
     const { width, height } = this.#sprite.getSize();

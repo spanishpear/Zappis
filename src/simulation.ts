@@ -15,7 +15,7 @@ class Electron extends Graphics {
 
   constructor() {
     super();
-    this.circle(0, 0, 5);
+    this.circle(0, 0, 7);
     this.fill(0xffff00); // Yellow color for visibility
   }
 }
