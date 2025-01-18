@@ -149,7 +149,7 @@ describe('WireManager', () => {
             const allPoints = wire.path
                 .filter(segment => segment.start && segment.end)
                 .flatMap(segment => 
-                    [segment.start!.position, segment.end!.position].filter((pos): pos is Point => pos !== undefined)
+                    [segment.start?.position, segment.end?.position].filter((pos): pos is Point => pos !== undefined)
                 );
             console.log('All points in path:', allPoints);
             console.log('Looking for waypoint1:', waypoint1);
@@ -184,16 +184,15 @@ describe('WireManager', () => {
             const allPoints = wire.path
                 .filter(segment => segment.start && segment.end)
                 .flatMap(segment => 
-                    [segment.start!.position, segment.end!.position].filter((pos): pos is Point => pos !== undefined)
+                    [segment.start?.position, segment.end?.position].filter((pos): pos is Point => pos !== undefined)
                 );
-            console.log('All points in path:', allPoints);
-            console.log('Looking for waypoint1:', waypoints[0]);
-            console.log('Looking for waypoint2:', waypoints[1]);
             const hasWaypoint1 = allPoints.some(pos => 
-                Math.abs(pos.x - waypoints[0].x) < 0.1 && Math.abs(pos.y - waypoints[0].y) < 0.1
+                // biome-ignore lint/style/noNonNullAssertion: it's a test
+                Math.abs(pos.x - waypoints[0]!.x) < 0.1 && Math.abs(pos.y - waypoints[0]!.y) < 0.1
             );
             const hasWaypoint2 = allPoints.some(pos => 
-                Math.abs(pos.x - waypoints[1].x) < 0.1 && Math.abs(pos.y - waypoints[1].y) < 0.1
+                // biome-ignore lint/style/noNonNullAssertion: it's a test
+                Math.abs(pos.x - waypoints[1]!.x) < 0.1 && Math.abs(pos.y - waypoints[1]!.y) < 0.1
             );
             
             expect(hasWaypoint1).toBe(true);

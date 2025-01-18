@@ -520,15 +520,16 @@ export class WireManager {
             throw new Error('No wire creation in progress');
         }
 
+        let adjustedPoint = point;
         if (this.waypointOptions.snapToGrid) {
-            point = new Point(
+            adjustedPoint = new Point(
                 Math.round(point.x / this.GRID_SIZE) * this.GRID_SIZE,
                 Math.round(point.y / this.GRID_SIZE) * this.GRID_SIZE
             );
         }
 
-        this.creationState.waypoints.push(point);
-        this.updatePreview(point);
+        this.creationState.waypoints.push(adjustedPoint);
+        this.updatePreview(adjustedPoint);
     }
 
     // New method for setting waypoints directly (used when loading from JSON)
