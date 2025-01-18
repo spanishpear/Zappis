@@ -32,7 +32,7 @@ export const bootstrap = async () => {
   appInstance.stage.scale.set(0.4);
 
   // Initialize grid system
-  globalThis.gridSystem = new GridSystem(window.innerWidth, window.innerHeight);
+  globalThis.gridSystem = new GridSystem(embedWidth, embedHeight);
 
   // Append the application canvas to the document body
   document.body.appendChild(appInstance.canvas);

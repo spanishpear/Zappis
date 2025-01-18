@@ -1,6 +1,6 @@
 export class GridSystem {
   private grid: boolean[][];
-  private gridSize = 10; // Size of each grid cell
+  private gridSize = 10; // Pixel per grid cell
   private width: number;
   private height: number;
 
